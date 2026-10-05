@@ -1,0 +1,29 @@
+{
+  "name": "skill-trace",
+  "version": "0.1.0",
+  "description": "A /skill-trace pane showing which skills loaded in this session, when, from which plugin, whether the model or you invoked them, and how large their instructions were",
+  "author": { "name": "Ariel Porath" },
+  "license": "MIT",
+  "keywords": ["mod", "observability", "skills", "pane"],
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "maxEntries": {
+      "type": "number",
+      "title": "Max entries",
+      "description": "How many skill loads the trace keeps; the oldest drop off first. Per-skill counts are kept regardless.",
+      "default": 200
+    },
+    "showArgs": {
+      "type": "boolean",
+      "title": "Record arguments",
+      "description": "Record and show the arguments the model passed to the Skill tool (truncated to 80 characters).",
+      "default": true
+    },
+    "statusLine": {
+      "type": "boolean",
+      "title": "Status line count",
+      "description": "Show a compact skill-load count in the status line under the prompt.",
+      "default": false
+    }
+  }
+}

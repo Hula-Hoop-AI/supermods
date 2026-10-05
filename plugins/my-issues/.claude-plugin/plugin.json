@@ -1,0 +1,102 @@
+{
+  "name": "my-issues",
+  "version": "0.1.0",
+  "description": "A /issues pane of the open issues assigned to you across GitHub, Linear, Jira and monday.com; press an issue to put its key, title and link in your prompt",
+  "author": { "name": "Ariel Porath" },
+  "license": "MIT",
+  "keywords": ["mod", "integrations", "issues", "pane", "github", "linear", "jira", "monday"],
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "github": {
+      "type": "boolean",
+      "title": "GitHub",
+      "description": "List GitHub issues assigned to you, through the gh CLI.",
+      "default": true
+    },
+    "github_scope": {
+      "type": "string",
+      "title": "GitHub scope",
+      "description": "Empty: every repo you can see. \"repo\": only the repo Claude Code runs in. Otherwise owners and/or owner/repo entries, comma-separated (e.g. my-org, octo/app).",
+      "default": ""
+    },
+    "linear": {
+      "type": "boolean",
+      "title": "Linear",
+      "description": "List Linear issues assigned to you that are not completed or canceled. Needs LINEAR_API_KEY or the Linear API key setting.",
+      "default": true
+    },
+    "linear_api_key": {
+      "type": "string",
+      "title": "Linear API key",
+      "description": "A Linear personal API key. Empty uses the LINEAR_API_KEY environment variable.",
+      "sensitive": true,
+      "default": ""
+    },
+    "jira": {
+      "type": "boolean",
+      "title": "Jira",
+      "description": "List Jira Cloud issues matching the JQL below. Needs a site URL, email and API token.",
+      "default": true
+    },
+    "jira_base_url": {
+      "type": "string",
+      "title": "Jira site URL",
+      "description": "e.g. https://your-team.atlassian.net. Empty uses JIRA_BASE_URL.",
+      "default": ""
+    },
+    "jira_email": {
+      "type": "string",
+      "title": "Jira email",
+      "description": "The Atlassian account email the API token belongs to. Empty uses JIRA_EMAIL.",
+      "default": ""
+    },
+    "jira_api_token": {
+      "type": "string",
+      "title": "Jira API token",
+      "description": "An Atlassian API token. Empty uses JIRA_API_TOKEN.",
+      "sensitive": true,
+      "default": ""
+    },
+    "jira_jql": {
+      "type": "string",
+      "title": "Jira JQL",
+      "description": "The search to list. Empty uses: assignee = currentUser() AND statusCategory != Done ORDER BY updated DESC",
+      "default": ""
+    },
+    "monday": {
+      "type": "boolean",
+      "title": "monday.com",
+      "description": "List monday.com items assigned to you in a People column and not marked done. Needs MONDAY_API_TOKEN or the monday.com token setting.",
+      "default": true
+    },
+    "monday_api_token": {
+      "type": "string",
+      "title": "monday.com API token",
+      "description": "A monday.com personal API token. Empty uses MONDAY_API_TOKEN.",
+      "sensitive": true,
+      "default": ""
+    },
+    "monday_boards": {
+      "type": "string",
+      "title": "monday.com boards",
+      "description": "Board ids to scan, comma-separated. Empty scans your 10 most recently used boards.",
+      "default": ""
+    },
+    "limit": {
+      "type": "number",
+      "title": "Issues per provider",
+      "description": "The most issues to list from each provider.",
+      "default": 20,
+      "min": 1,
+      "max": 100
+    },
+    "refresh_minutes": {
+      "type": "number",
+      "title": "Refresh every (minutes)",
+      "description": "How often the pane refreshes while it is open.",
+      "default": 5,
+      "min": 1,
+      "max": 60
+    }
+  }
+}

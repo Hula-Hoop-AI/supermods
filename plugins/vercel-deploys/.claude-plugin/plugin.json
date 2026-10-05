@@ -1,0 +1,53 @@
+{
+  "name": "vercel-deploys",
+  "version": "0.1.0",
+  "description": "A /vercel-deploys pane of your recent Vercel deployments: state, environment, branch, commit, creator, age and URL, with the current git branch highlighted",
+  "author": { "name": "Ariel Porath" },
+  "license": "MIT",
+  "keywords": ["mod", "pane", "integrations", "deployments", "vercel"],
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "team": {
+      "type": "string",
+      "title": "Vercel team",
+      "description": "Vercel team id (team_...) or slug. Empty uses the team in .vercel/project.json, else your personal account.",
+      "default": ""
+    },
+    "project": {
+      "type": "string",
+      "title": "Vercel project",
+      "description": "Vercel project id or name to show. Empty uses the project linked in .vercel/project.json, else every project.",
+      "default": ""
+    },
+    "max_rows": {
+      "type": "number",
+      "title": "Rows",
+      "description": "How many deployments to list, newest first.",
+      "default": 15,
+      "min": 1,
+      "max": 100
+    },
+    "refresh_seconds": {
+      "type": "number",
+      "title": "Refresh interval (seconds)",
+      "description": "How often the open pane refreshes while nothing is building.",
+      "default": 60,
+      "min": 15,
+      "max": 3600
+    },
+    "building_refresh_seconds": {
+      "type": "number",
+      "title": "Refresh interval while building (seconds)",
+      "description": "How often the pane refreshes while a deployment is building.",
+      "default": 10,
+      "min": 5,
+      "max": 600
+    },
+    "notify_on_finish": {
+      "type": "boolean",
+      "title": "Toast when a branch deploy finishes",
+      "description": "With the pane closed, keep watching deployments of the current git branch that were building and show a toast when each one is ready or fails.",
+      "default": false
+    }
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "name": "render-deploys",
+  "version": "0.1.0",
+  "description": "A /render-deploys pane of your recent Render deploys: state, service, environment, branch, commit, trigger, age and link, with the current git branch highlighted",
+  "author": { "name": "Ariel Porath" },
+  "license": "MIT",
+  "keywords": ["mod", "pane", "integrations", "deployments", "render"],
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "services": {
+      "type": "string",
+      "title": "Render services",
+      "description": "Comma-separated Render service names to show. Empty shows every service, up to the service cap.",
+      "default": ""
+    },
+    "max_services": {
+      "type": "number",
+      "title": "Service cap",
+      "description": "Most services to list deploys for. A full refresh makes one request per service.",
+      "default": 10,
+      "min": 1,
+      "max": 50
+    },
+    "max_rows": {
+      "type": "number",
+      "title": "Rows",
+      "description": "How many deploys to list, newest first.",
+      "default": 15,
+      "min": 1,
+      "max": 100
+    },
+    "refresh_seconds": {
+      "type": "number",
+      "title": "Refresh interval (seconds)",
+      "description": "How often the open pane refreshes every service. Also the longest gap between full refreshes while something builds.",
+      "default": 60,
+      "min": 15,
+      "max": 3600
+    },
+    "building_refresh_seconds": {
+      "type": "number",
+      "title": "Refresh interval while building (seconds)",
+      "description": "How often the pane re-checks the services that have a deploy building.",
+      "default": 10,
+      "min": 5,
+      "max": 600
+    },
+    "notify_on_finish": {
+      "type": "boolean",
+      "title": "Toast when a branch deploy finishes",
+      "description": "With the pane closed, keep watching deploys of the current git branch that were building and show a toast when each one is live or fails.",
+      "default": false
+    }
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "name": "sources",
+  "version": "0.1.0",
+  "description": "A /sources pane listing every web page Claude fetched or saw in search results this session, deduplicated by URL, with a button that inserts them as citations into your prompt",
+  "author": { "name": "Ariel Porath" },
+  "license": "MIT",
+  "keywords": ["mod", "observability", "web", "citations", "pane"],
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "citation_format": {
+      "type": "string",
+      "title": "Citation format",
+      "description": "How Insert citations writes the list: markdown (- [Title](url)) or numbered ([1] Title. url).",
+      "options": ["markdown", "numbered"],
+      "default": "markdown"
+    },
+    "cite_search_results": {
+      "type": "boolean",
+      "title": "Cite search results",
+      "description": "Also cite pages that only appeared in search results. Off: only pages Claude fetched successfully are cited.",
+      "default": false
+    },
+    "extra_tools": {
+      "type": "string",
+      "title": "Extra fetch tools",
+      "description": "Comma-separated names of other tools that fetch a URL, recorded like WebFetch, e.g. mcp__fetch__fetch. Empty: WebFetch and WebSearch only.",
+      "default": ""
+    },
+    "url_arg": {
+      "type": "string",
+      "title": "URL argument of extra tools",
+      "description": "The argument that holds the URL in the extra fetch tools' calls.",
+      "default": "url"
+    },
+    "project_history": {
+      "type": "boolean",
+      "title": "Keep project history",
+      "description": "Also keep the sources of every session in this project, on disk in the plugin's store, and add a pane button to show them.",
+      "default": false
+    }
+  }
+}

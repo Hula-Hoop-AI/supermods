@@ -1,0 +1,17 @@
+{
+  "name": "modal-containers",
+  "version": "0.3.0",
+  "description": "A /modal pane listing your running Modal containers by app, with who launched each run and what it has cost. Pick the Modal environment in the plugin's settings; empty follows MODAL_ENVIRONMENT, then your modal profile (macOS/Linux)",
+  "author": { "name": "Ariel Porath" },
+  "license": "MIT",
+  "keywords": ["mod", "modal", "pane", "integrations", "cost"],
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "environment": {
+      "type": "string",
+      "title": "Modal environment",
+      "description": "The Modal environment to list, e.g. main or dev. Empty follows MODAL_ENVIRONMENT, then your modal profile's environment (modal config set-environment), then the workspace default.",
+      "default": ""
+    }
+  }
+}

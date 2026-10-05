@@ -67,6 +67,18 @@
       ]
     },
     {
+      "name": "docker-containers",
+      "source": "./plugins/docker-containers",
+      "description": "A /docker pane showing `docker ps` (ID, image, command, created, status, ports, names), refreshed every 2 seconds while open; pick the Docker context, whether to include stopped containers and the interval in the plugin's settings",
+      "version": "0.1.0",
+      "category": "integrations",
+      "keywords": [
+        "docker",
+        "containers",
+        "pane"
+      ]
+    },
+    {
       "name": "focus-timer",
       "source": "./plugins/focus-timer",
       "description": "A focus timer in the band above the prompt: /focus starts a block, the band counts it down with pause, skip and stop buttons, a toast marks each switch, and every fourth break is a long one.",
@@ -97,6 +109,86 @@
       ]
     },
     {
+      "name": "modal-containers",
+      "source": "./plugins/modal-containers",
+      "description": "A /modal pane listing your running Modal containers by app, with who launched each run and what it has cost. Pick the Modal environment in the plugin's settings; empty follows MODAL_ENVIRONMENT, then your modal profile (macOS/Linux)",
+      "version": "0.3.0",
+      "category": "integrations",
+      "keywords": [
+        "modal",
+        "pane",
+        "integrations",
+        "cost"
+      ]
+    },
+    {
+      "name": "my-issues",
+      "source": "./plugins/my-issues",
+      "description": "A /issues pane of the open issues assigned to you across GitHub, Linear, Jira and monday.com; press an issue to put its key, title and link in your prompt",
+      "version": "0.1.0",
+      "category": "integrations",
+      "keywords": [
+        "integrations",
+        "issues",
+        "pane",
+        "github",
+        "linear",
+        "jira",
+        "monday"
+      ]
+    },
+    {
+      "name": "render-deploys",
+      "source": "./plugins/render-deploys",
+      "description": "A /render-deploys pane of your recent Render deploys: state, service, environment, branch, commit, trigger, age and link, with the current git branch highlighted",
+      "version": "0.1.0",
+      "category": "integrations",
+      "keywords": [
+        "pane",
+        "integrations",
+        "deployments",
+        "render"
+      ]
+    },
+    {
+      "name": "sensitive-paths",
+      "source": "./plugins/sensitive-paths",
+      "description": "Blocks Claude from reading secret-bearing files (.env, SSH keys, cloud credentials, and your own globs) through Read, Glob, Grep and, best effort, Bash; writing them is left alone",
+      "version": "0.1.0",
+      "category": "safety",
+      "keywords": [
+        "safety",
+        "guardrails",
+        "secrets",
+        "permissions"
+      ]
+    },
+    {
+      "name": "skill-trace",
+      "source": "./plugins/skill-trace",
+      "description": "A /skill-trace pane showing which skills loaded in this session, when, from which plugin, whether the model or you invoked them, and how large their instructions were",
+      "version": "0.1.0",
+      "category": "observability",
+      "keywords": [
+        "observability",
+        "skills",
+        "pane"
+      ]
+    },
+    {
+      "name": "sources",
+      "source": "./plugins/sources",
+      "description": "A /sources pane listing every web page Claude fetched or saw in search results this session, deduplicated by URL, with a button that inserts them as citations into your prompt",
+      "version": "0.1.0",
+      "category": "observability",
+      "keywords": [
+        "observability",
+        "web",
+        "citations",
+        "pane"
+      ]
+    },
+    {
       "name": "tripwire",
       "source": "./plugins/tripwire",
       "description": "Holds a destructive Bash command before it runs, shows what it would destroy, and waits for you to run it once, block it, or allow its rule for the session.",
@@ -110,6 +202,19 @@
         "force push",
         "git reset",
         "confirmation"
+      ]
+    },
+    {
+      "name": "vercel-deploys",
+      "source": "./plugins/vercel-deploys",
+      "description": "A /vercel-deploys pane of your recent Vercel deployments: state, environment, branch, commit, creator, age and URL, with the current git branch highlighted",
+      "version": "0.1.0",
+      "category": "integrations",
+      "keywords": [
+        "pane",
+        "integrations",
+        "deployments",
+        "vercel"
       ]
     },
     {

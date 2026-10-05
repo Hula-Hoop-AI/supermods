@@ -1,0 +1,31 @@
+{
+  "name": "docker-containers",
+  "version": "0.1.0",
+  "description": "A /docker pane showing `docker ps` (ID, image, command, created, status, ports, names), refreshed every 2 seconds while open; pick the Docker context, whether to include stopped containers and the interval in the plugin's settings",
+  "author": { "name": "Ariel Porath" },
+  "license": "MIT",
+  "keywords": ["mod", "docker", "containers", "pane"],
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "context": {
+      "type": "string",
+      "title": "Docker context",
+      "description": "The docker context to list (docker --context). Empty follows DOCKER_HOST, then your current context (docker context use).",
+      "default": ""
+    },
+    "all": {
+      "type": "boolean",
+      "title": "Include stopped containers",
+      "description": "Also list exited and created containers (docker ps --all).",
+      "default": false
+    },
+    "refresh_seconds": {
+      "type": "number",
+      "title": "Refresh interval (seconds)",
+      "description": "How often the pane refreshes while it is open.",
+      "default": 2,
+      "min": 1,
+      "max": 3600
+    }
+  }
+}
