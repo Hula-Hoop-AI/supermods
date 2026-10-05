@@ -1,0 +1,36 @@
+{
+  "name": "context-tide",
+  "version": "0.1.0",
+  "description": "Band above the prompt that shows the context window as a tide: a fill bar, the trend per turn, a sparkline of recent turns and how many turns are left before compaction.",
+  "types": "./types/index.d.ts",
+  "author": {
+    "name": "Tadata"
+  },
+  "license": "MIT",
+  "keywords": [
+    "mod",
+    "context window",
+    "tokens",
+    "compaction",
+    "band",
+    "usage"
+  ],
+  "userConfig": {
+    "compact_at": {
+      "type": "number",
+      "title": "Compaction threshold",
+      "description": "Context fill, in percent, that counts as full: the bar turns red there and the turns-left estimate counts down to it.",
+      "default": 80,
+      "min": 50,
+      "max": 100
+    },
+    "history_turns": {
+      "type": "number",
+      "title": "Turns in the sparkline",
+      "description": "How many recent turns the sparkline shows.",
+      "default": 12,
+      "min": 4,
+      "max": 40
+    }
+  }
+}

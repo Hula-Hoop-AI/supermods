@@ -25,6 +25,62 @@
       ]
     },
     {
+      "name": "ci-beacon",
+      "source": "./plugins/ci-beacon",
+      "description": "Status line with the latest GitHub Actions run for the current branch, refreshed on a timer and after each turn, with a toast when a run finishes.",
+      "version": "0.1.0",
+      "category": "workflow",
+      "keywords": [
+        "ci",
+        "github actions",
+        "gh",
+        "status line",
+        "workflow"
+      ]
+    },
+    {
+      "name": "code-garden",
+      "source": "./plugins/code-garden",
+      "description": "A plant in the band above the prompt that grows with every tool call and finished turn, wilts when a tool fails, and keeps growing across sessions.",
+      "version": "0.1.0",
+      "category": "fun",
+      "keywords": [
+        "fun",
+        "plant",
+        "companion",
+        "band",
+        "progress"
+      ]
+    },
+    {
+      "name": "context-tide",
+      "source": "./plugins/context-tide",
+      "description": "Band above the prompt that shows the context window as a tide: a fill bar, the trend per turn, a sparkline of recent turns and how many turns are left before compaction.",
+      "version": "0.1.0",
+      "category": "observability",
+      "keywords": [
+        "context window",
+        "tokens",
+        "compaction",
+        "band",
+        "usage"
+      ]
+    },
+    {
+      "name": "focus-timer",
+      "source": "./plugins/focus-timer",
+      "description": "A focus timer in the band above the prompt: /focus starts a block, the band counts it down with pause, skip and stop buttons, a toast marks each switch, and every fourth break is a long one.",
+      "version": "0.1.0",
+      "category": "productivity",
+      "keywords": [
+        "focus",
+        "pomodoro",
+        "timer",
+        "band",
+        "productivity"
+      ]
+    },
+    {
       "name": "git-account-hint",
       "source": "./plugins/git-account-hint",
       "description": "When GitHub refuses a git command for the account it used, tells Claude which other gh accounts are signed in and how to run the command as one of them.",
@@ -38,6 +94,22 @@
         "permission denied",
         "accounts",
         "authentication"
+      ]
+    },
+    {
+      "name": "tripwire",
+      "source": "./plugins/tripwire",
+      "description": "Holds a destructive Bash command before it runs, shows what it would destroy, and waits for you to run it once, block it, or allow its rule for the session.",
+      "version": "0.1.0",
+      "category": "safety",
+      "keywords": [
+        "guard",
+        "safety",
+        "bash",
+        "rm -rf",
+        "force push",
+        "git reset",
+        "confirmation"
       ]
     },
     {

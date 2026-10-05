@@ -1,0 +1,44 @@
+{
+  "name": "focus-timer",
+  "version": "0.1.0",
+  "description": "A focus timer in the band above the prompt: /focus starts a block, the band counts it down with pause, skip and stop buttons, a toast marks each switch, and every fourth break is a long one.",
+  "types": "./types/index.d.ts",
+  "author": {
+    "name": "Tadata"
+  },
+  "license": "MIT",
+  "keywords": [
+    "mod",
+    "focus",
+    "pomodoro",
+    "timer",
+    "band",
+    "productivity"
+  ],
+  "userConfig": {
+    "focus_minutes": {
+      "type": "number",
+      "title": "Focus block",
+      "description": "Minutes in a focus block.",
+      "default": 50,
+      "min": 1,
+      "max": 180
+    },
+    "break_minutes": {
+      "type": "number",
+      "title": "Break",
+      "description": "Minutes in a break.",
+      "default": 10,
+      "min": 1,
+      "max": 60
+    },
+    "long_break_minutes": {
+      "type": "number",
+      "title": "Long break",
+      "description": "Minutes in the break after every fourth focus block.",
+      "default": 25,
+      "min": 1,
+      "max": 120
+    }
+  }
+}

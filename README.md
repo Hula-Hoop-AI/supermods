@@ -14,7 +14,12 @@ status lines, and add slash commands. Mods need Claude Code v2.1.287 or later.
 | Mod | What it does | Search words |
 |---|---|---|
 | [`agent-debugger`](plugins/agent-debugger/) | A step debugger for the agent loop. Pause at prompts, model requests, responses, tool calls and results; inspect and edit them; play, step, stop, or re-run from an earlier event. | debugger, breakpoints, step, pause, inspect, tool calls, re-run, rewind |
+| [`ci-beacon`](plugins/ci-beacon/) | Keeps the latest GitHub Actions run for the current branch in the status line, refreshed on a timer and after each turn, with a toast when a run finishes. | ci, github actions, gh, status line, workflow |
+| [`code-garden`](plugins/code-garden/) | A plant in the band above the prompt that grows with every tool call and finished turn, wilts when a tool fails, and keeps growing across sessions. | fun, plant, companion, band, progress |
+| [`context-tide`](plugins/context-tide/) | Shows the context window as a tide in the band above the prompt: a fill bar colored by phase, a sparkline of recent turns, the trend per turn and the turns left before compaction. | context window, tokens, compaction, band, usage |
+| [`focus-timer`](plugins/focus-timer/) | A focus timer in the band above the prompt: `/focus` starts a block, the band counts it down with pause, skip and stop, a toast marks each switch, and every fourth break is a long one. | focus, pomodoro, timer, band, productivity |
 | [`git-account-hint`](plugins/git-account-hint/) | When GitHub refuses a git command for the account it used, tells Claude which other `gh` accounts are signed in and how to run the command as one of them. | git, github, gh, push, permission denied, accounts, authentication |
+| [`tripwire`](plugins/tripwire/) | Holds a destructive Bash command (`rm -rf`, hard reset, force push, …) before it runs, shows what it would destroy, and waits for you to run it once, block it, or allow its rule for the session. | guard, safety, bash, rm -rf, force push, git reset, confirmation |
 | [`worktree-hud`](plugins/worktree-hud/) | Shows the current git worktree, branch and listening ports in the status line, and adds a `/worktrees` pane to review and clear finished worktrees. | git, worktree, status line, ports, cleanup |
 
 Each mod's README says what it does, how to use it, and what it touches. The same list, with
