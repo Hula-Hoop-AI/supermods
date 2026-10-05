@@ -10,14 +10,14 @@
     {
       "name": "ci",
       "source": "./plugins/ci",
-      "description": "Status line with the latest GitHub Actions run for the current branch, refreshed on a timer and after each turn, with a toast when a run finishes.",
-      "version": "0.1.0",
+      "description": "Shows the latest GitHub Actions run for the current branch in the hint line under the prompt, refreshed on a timer and after each turn, with a toast when a run finishes.",
+      "version": "0.1.1",
       "category": "git",
       "keywords": [
         "ci",
         "github actions",
         "gh",
-        "status line",
+        "prompt hint",
         "workflow"
       ]
     },
@@ -83,8 +83,8 @@
     {
       "name": "observe",
       "source": "./plugins/observe",
-      "description": "An /observe pane with a tab per provider: Docker containers, Modal containers and their cost, and Render and Vercel deploys with the current git branch highlighted. `/observe docker|modal|render|vercel` opens it on that tab",
-      "version": "0.1.0",
+      "description": "An /observe pane with a tab per provider: Docker and Modal containers with each one's live logs and GPU, CPU and RAM use (and Modal's cost), and Render and Vercel deploys (Vercel grouped by app under its production URL) with the current git branch highlighted. `/observe docker|modal|render|vercel` opens it on that tab",
+      "version": "0.2.0",
       "category": "observability",
       "keywords": [
         "observability",
@@ -129,13 +129,13 @@
     {
       "name": "worktrees",
       "source": "./plugins/worktrees",
-      "description": "Status line with the current git worktree, branch and listening ports, and a /worktrees pane to review and clear finished worktrees.",
-      "version": "0.1.1",
+      "description": "Shows repo@branch and its listening ports in the hint line under the prompt, and a /worktrees pane to review and clear finished worktrees.",
+      "version": "0.1.2",
       "category": "git",
       "keywords": [
         "git",
         "worktree",
-        "status line",
+        "prompt hint",
         "ports",
         "cleanup"
       ]

@@ -1,7 +1,7 @@
 {
   "name": "worktrees",
-  "version": "0.1.1",
-  "description": "Status line with the current git worktree, branch and listening ports, and a /worktrees pane to review and clear finished worktrees.",
+  "version": "0.1.2",
+  "description": "Shows repo@branch and its listening ports in the hint line under the prompt, and a /worktrees pane to review and clear finished worktrees.",
   "types": "./types/index.d.ts",
   "author": {
     "name": "Tadata"
@@ -11,7 +11,7 @@
     "mod",
     "git",
     "worktree",
-    "status line",
+    "prompt hint",
     "ports",
     "cleanup"
   ]

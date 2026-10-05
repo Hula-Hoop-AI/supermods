@@ -1,5 +1,5 @@
 declare module 'claude-code' {
   interface PluginState {
-    'ci': { seen: Record<string, string> };
+    'ci': { seen: Record<string, string>; hint: string };
   }
 }

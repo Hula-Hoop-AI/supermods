@@ -3,7 +3,7 @@ import type { PluginOptions, ProcessRunResult } from 'claude-code'
 import type { Io } from '../io'
 import type { RowState } from '../tab-pane'
 import type { ObserveRow, Snapshot } from '../../types'
-import { lastLine, num, plural } from '../util'
+import { DETAILS, lastLine, num, plural } from '../util'
 import type { ProviderOf } from './index'
 
 // One `docker ps --format '{{json .}}'` line; only the fields read here.
@@ -33,6 +33,7 @@ export function parsePs(stdout: string): ObserveRow[] {
         ...(r.Ports ? [{ text: r.Ports, dimColor: true }] : []),
       ],
       copyText: r.Names,
+      actions: DETAILS.map(key => ({ key, label: key })),
     }
   })
 }

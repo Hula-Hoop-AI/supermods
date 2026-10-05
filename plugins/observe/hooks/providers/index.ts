@@ -35,7 +35,7 @@ export function fetchProvider(io: Io, p: Provider, prev: Snapshot, force: boolea
   if (p.id === 'docker') return fetchDocker(io, p.config)
   if (p.id === 'modal') return fetchModal(io, p.config, prev, force)
   if (p.id === 'render') return fetchRender(io, p.config, prev, force)
-  return fetchVercel(io, p.config)
+  return fetchVercel(io, p.config, prev, force)
 }
 
 const FACTORIES: Record<ProviderId, (options: PluginOptions) => Provider> = { docker, modal, render, vercel }

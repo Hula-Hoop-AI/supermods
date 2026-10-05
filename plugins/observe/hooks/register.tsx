@@ -1,26 +1,41 @@
 import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register, RenderSurface, Timer } from 'claude-code'
 
-import type { ProviderId, Snapshot } from '../types'
+import type { Logs, Metrics, ProviderId, Snapshot, Target } from '../types'
 import type { Io } from './io'
 import { buildProviders, fetchProvider } from './providers'
 import type { Provider } from './providers'
+import { detailTitle, fetchDetailLogs, fetchDetailMetrics } from './providers/details'
+import { logsPane, metricsPane } from './providers/detail-view'
 import { tabPane } from './tab-pane'
-import { message } from './util'
+import type { Row } from './tab-pane'
+import { DETAILS, message, num } from './util'
+import type { Detail } from './util'
 
 const PANE = 'observe'
 const COMMAND = 'observe'
 const EMPTY: Snapshot = { rows: [] }
+const DETAIL_REFRESH_S = 5
+// The per-container panes the Modal and Docker tabs share, one of each: another row's button
+// points it at that container.
+const LOGS_PANE = 'observe-logs'
+const METRICS_PANE = 'observe-metrics'
+const DETAIL_PANES: Record<Detail, string> = { logs: LOGS_PANE, metrics: METRICS_PANE }
 
 // '' until a tab is picked: the first provider shows
 const tab = atom({ plugin: 'observe', key: 'tab' } as const, '' as ProviderId | '')
 const snapshots = atom({ plugin: 'observe', key: 'snapshots' } as const, {} as Partial<Record<ProviderId, Snapshot>>)
 const toggles = atom({ plugin: 'observe', key: 'toggles' } as const, {} as Record<string, boolean>)
 const watching = atom({ plugin: 'observe', key: 'watching' } as const, {} as Partial<Record<ProviderId, string[]>>)
+const logs = atom({ plugin: 'observe', key: 'logs' } as const, null as Logs | null)
+const metrics = atom({ plugin: 'observe', key: 'metrics' } as const, null as Metrics | null)
 
 // Replaced by register; a settings change reloads the module.
 let providers: Provider[] = []
 let notify = false
+let detailMs = DETAIL_REFRESH_S * 1000
+const detailTimers: Partial<Record<Detail, Timer>> = {}
+const detailBusy: Record<Detail, boolean> = { logs: false, metrics: false }
 let timer: Timer | undefined
 let pollRound = 0
 const inflight = new Map<ProviderId, Promise<Snapshot>>()
@@ -111,6 +126,62 @@ async function poll($: EngineInterface, force = false) {
   timer = $.clock.after(Math.min(...intervals), () => void poll($))
 }
 
+// One call at a time per pane: a tick that finds the previous one still running is skipped.
+// The answer is dropped if the pane moved on to another container meanwhile.
+async function refreshDetail($: EngineInterface, kind: Detail) {
+  if (detailBusy[kind]) return
+  detailBusy[kind] = true
+  try {
+    if (kind === 'logs') {
+      const cur = await read($, logs)
+      if (!cur) return
+      const next = await fetchDetailLogs(bind($), cur)
+      await update($, logs, now => (now && sameTarget(now, cur) ? next : now))
+    } else {
+      const cur = await read($, metrics)
+      if (!cur) return
+      const next = await fetchDetailMetrics(bind($), cur)
+      await update($, metrics, now => (now && sameTarget(now, cur) ? next : now))
+    }
+  } finally {
+    detailBusy[kind] = false
+  }
+}
+
+function stopDetail(kind: Detail) {
+  detailTimers[kind]?.cancel()
+  delete detailTimers[kind]
+}
+
+// Refreshes while the pane is open. `ui.close` stops it at once; the pane check on each tick
+// also stops it should a close go unheard (e.g. across a reload).
+function startDetail($: EngineInterface, kind: Detail) {
+  stopDetail(kind)
+  void refreshDetail($, kind)
+  detailTimers[kind] = $.clock.every(detailMs, async () => {
+    if ((await $.ui.panes()).some(p => p.id === DETAIL_PANES[kind])) await refreshDetail($, kind)
+    else stopDetail(kind)
+  })
+}
+
+const sameTarget = (a: Target, b: Target) => a.source === b.source && a.container_id === b.container_id
+
+async function openDetail($: EngineInterface, kind: Detail, target: Target) {
+  if (kind === 'logs') await update($, logs, () => ({ ...target, lines: [] }))
+  else await update($, metrics, () => target)
+  const title = detailTitle(kind, target)
+  const opened = await $.ui.open({ id: DETAIL_PANES[kind], title })
+  if (!opened.isPlaced) $.ui.toast(notPlaced(title, opened.reason))
+  startDetail($, kind)
+}
+
+// The container a Modal or Docker row stands for; undefined on the other tabs.
+function targetOf(p: Provider, row: Row): Target | undefined {
+  if (p.id === 'modal') return { source: 'modal', container_id: row.id, name: row.title }
+  if (p.id === 'docker') return { source: 'docker', container_id: row.id, name: row.title, context: p.config.context || undefined }
+  return undefined
+}
+
 async function copy($: EngineInterface, text: string, surface: RenderSurface) {
   const r = await $.ui.copy({ text, surface })
   $.ui.toast(r.isCopied ? `Copied ${text}` : `Could not copy (${r.reason})`)
@@ -123,6 +194,7 @@ function notPlaced(what: string, reason: string) {
 export const register: Register = (on, options) => {
   providers = buildProviders(options)
   notify = options.notify_on_finish === true
+  detailMs = num(options.detail_refresh_seconds, DETAIL_REFRESH_S, 2, 3600) * 1000
   const ids = providers.map(p => p.id)
 
   on('session.start', async ($, e, next) => {
@@ -131,9 +203,11 @@ export const register: Register = (on, options) => {
       description: `Watch ${providers.map(p => p.title).join(', ')} in a pane`,
       argumentHint: `[${ids.join('|')}]`,
     })
-    // A reload (a settings change, a new version) drops the old timer but keeps the pane
+    // A reload (a settings change, a new version) drops the old timers but keeps the panes
     // open, or a watched build pending: pick polling back up.
     void poll($)
+    const open = await $.ui.panes()
+    for (const kind of DETAILS) if (open.some(p => p.id === DETAIL_PANES[kind])) startDetail($, kind)
     return next(e)
   })
 
@@ -154,6 +228,24 @@ export const register: Register = (on, options) => {
     void poll($)
     return closed
   })
+
+  on('ui.close', { id: LOGS_PANE }, async ($, e, next) => {
+    stopDetail('logs')
+    return next(e)
+  })
+
+  on('ui.close', { id: METRICS_PANE }, async ($, e, next) => {
+    stopDetail('metrics')
+    return next(e)
+  })
+
+  on('ui.render', { component: 'Pane', requestId: LOGS_PANE }, async ($, e) =>
+    logsPane($.ui.resolve(e), e.props.scroll.bodyRows, await read($, logs), detailMs / 1000),
+  )
+
+  on('ui.render', { component: 'Pane', requestId: METRICS_PANE }, async ($, e) =>
+    metricsPane($.ui.resolve(e), await read($, metrics), detailMs / 1000, e.props.bodyColumns),
+  )
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
     const p = await activeProvider($)
@@ -186,6 +278,12 @@ export const register: Register = (on, options) => {
       empty: snap.unavailable ?? view.empty,
       rows: view.rows,
       onCopy: (text, surface) => void copy($, text, surface),
+      columns: e.props.bodyColumns,
+      onRowAction: (row, key) => {
+        const kind = DETAILS.find(d => d === key)
+        const target = targetOf(p, row)
+        if (kind && target) void openDetail($, kind, target)
+      },
       footer: [`every ${Math.round(p.intervalMs(snap) / 1000)}s`, p.footnote].filter(Boolean).join(' · '),
     })
   })

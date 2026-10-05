@@ -50,9 +50,11 @@ export const deployInterval = (snap: Snapshot, cfg: DeployConfig) => (isBuilding
 
 export function deployView(snap: Snapshot): View {
   const building = snap.rows.filter(r => r.state === 'busy').length
+  const deploys = snap.rows.filter(r => !r.heading).length
+  const apps = snap.rows.length - deploys
   return {
     rows: snap.rows,
-    summary: `${plural(snap.rows.length, 'deploy')}${building ? `, ${building} building` : ''}`,
+    summary: `${plural(deploys, 'deploy')}${apps ? ` in ${plural(apps, 'app')}` : ''}${building ? `, ${building} building` : ''}`,
     empty: 'No deploys found.',
   }
 }

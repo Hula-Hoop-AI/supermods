@@ -32,14 +32,14 @@ claude plugin update <mod-name>@supermods
 
 | Mod | What it does | Search words |
 |---|---|---|
-| [`observe`](plugins/observe/) | An /observe pane with a tab per provider: Docker containers, Modal containers and their cost, and Render and Vercel deploys with the current git branch highlighted. `/observe docker|modal|render|vercel` opens it on that tab | observability, pane, docker, containers, modal, cost, render, vercel, deployments |
+| [`observe`](plugins/observe/) | An /observe pane with a tab per provider: Docker and Modal containers with each one's live logs and GPU, CPU and RAM use (and Modal's cost), and Render and Vercel deploys (Vercel grouped by app under its production URL) with the current git branch highlighted. `/observe docker|modal|render|vercel` opens it on that tab | observability, pane, docker, containers, modal, cost, render, vercel, deployments |
 
 ### Git
 
 | Mod | What it does | Search words |
 |---|---|---|
-| [`ci`](plugins/ci/) | Status line with the latest GitHub Actions run for the current branch, refreshed on a timer and after each turn, with a toast when a run finishes. | ci, github actions, gh, status line, workflow |
-| [`worktrees`](plugins/worktrees/) | Status line with the current git worktree, branch and listening ports, and a /worktrees pane to review and clear finished worktrees. | git, worktree, status line, ports, cleanup |
+| [`ci`](plugins/ci/) | Shows the latest GitHub Actions run for the current branch in the hint line under the prompt, refreshed on a timer and after each turn, with a toast when a run finishes. | ci, github actions, gh, prompt hint, workflow |
+| [`worktrees`](plugins/worktrees/) | Shows repo@branch and its listening ports in the hint line under the prompt, and a /worktrees pane to review and clear finished worktrees. | git, worktree, prompt hint, ports, cleanup |
 
 ### Work
 

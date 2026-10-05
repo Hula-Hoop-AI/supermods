@@ -6,9 +6,14 @@ import type { Worktree, WorktreeScan } from '../types';
 const PANE = 'worktrees';
 const FALLBACK_BASE_REFS = ['origin/main', 'origin/master'];
 const MERGED_PR_LIMIT = '200';
+const SEPARATOR = ' · ';
+// Under this many columns a cut segment says nothing, so it is left out (the terminal's rule for `tail`).
+const MIN_SEGMENT_COLUMNS = 4;
 
 const scan = atom({ plugin: 'worktrees', key: 'scan' } as const, { baseRef: '', worktrees: [] });
 const note = atom({ plugin: 'worktrees', key: 'note' } as const, '');
+// What the prompt hint shows: `repo@branch` and the ports, or empty outside a repository.
+const hint = atom({ plugin: 'worktrees', key: 'hint' } as const, '');
 
 type WorktreeEntry = Pick<Worktree, 'path' | 'branch'>;
 
@@ -176,10 +181,20 @@ async function removeFinished($: EngineInterface): Promise<string> {
   return `Removed ${plural(finished.length - kept.length, 'worktree')}, branches untouched${keptNote}.`;
 }
 
-async function refreshStatus($: EngineInterface): Promise<void> {
+export function hintText(root: string, branch: string, ports: number[]): string {
+  return [`${baseName(root)}@${branch || 'detached'}`, portList(ports)].filter(Boolean).join(SEPARATOR);
+}
+
+/** The segment cut to `room` columns, or empty when too little of it would show. */
+export function fit(segment: string, room: number): string {
+  if (room < MIN_SEGMENT_COLUMNS) return '';
+  return segment.length <= room ? segment : `${segment.slice(0, room - 1)}…`;
+}
+
+async function refreshHint($: EngineInterface): Promise<void> {
   const root = await output($, ['git', 'rev-parse', '--show-toplevel']);
   if (root === '') {
-    $.ui.status(undefined);
+    await update($, hint, () => '');
     return;
   }
   const [branch, listing, portsByDirectory] = await Promise.all([
@@ -189,7 +204,8 @@ async function refreshStatus($: EngineInterface): Promise<void> {
   ]);
   const paths = parseWorktreeList(listing).map(entry => entry.path);
   const ports = portsByWorktree(portsByDirectory, paths).get(root) ?? [];
-  $.ui.status([baseName(root), branch || 'detached', portList(ports)].filter(Boolean).join(' · '));
+  const text = hintText(root, branch, ports);
+  await update($, hint, () => text);
 }
 
 function notPlaced(what: string, reason: string) {
@@ -202,15 +218,38 @@ export const register: Register = on => {
       name: 'worktrees',
       description: 'Review git worktrees and clear the finished ones',
     });
-    void refreshStatus($);
+    void refreshHint($);
 
     return next(e);
   });
 
   on('turn.complete', ($, e, next) => {
-    void refreshStatus($);
+    void refreshHint($);
 
     return next(e);
+  });
+
+  // The terminal adds `tail` to its own live line and cuts it at the row's end; the desktop
+  // does not draw `tail` yet, so there the engine's line is wrapped with the segment beside it.
+  on('ui.render', { component: 'PromptHint' }, async ($, e, next) => {
+    const segment = await read($, hint);
+    if (segment === '') return next(e);
+    if (e.surface === 'terminal') {
+      const tail = e.props.tail ? `${e.props.tail}${SEPARATOR}${segment}` : segment;
+      return next({ ...e, props: { ...e.props, tail } });
+    }
+    const drawn = await next(e);
+    const room = e.viewport === undefined ? segment.length : e.viewport.columns - e.props.hint.length - SEPARATOR.length;
+    const shown = fit(segment, room);
+    if (shown === '') return drawn;
+    const { Box, Text } = $.ui.resolve(e);
+
+    return (
+      <Box flexDirection="row">
+        {drawn}
+        <Text dimColor wrap="truncate-end">{`${SEPARATOR}${shown}`}</Text>
+      </Box>
+    );
   });
 
   on('command.run', { command: 'worktrees' }, async $ => {
