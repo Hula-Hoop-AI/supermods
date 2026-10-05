@@ -1,7 +1,7 @@
 {
   "name": "ci",
-  "version": "0.1.0",
-  "description": "Status line with the latest GitHub Actions run for the current branch, refreshed on a timer and after each turn, with a toast when a run finishes.",
+  "version": "0.1.1",
+  "description": "Shows the latest GitHub Actions run for the current branch in the hint line under the prompt, refreshed on a timer and after each turn, with a toast when a run finishes.",
   "types": "./types/index.d.ts",
   "author": {
     "name": "Tadata"
@@ -12,7 +12,7 @@
     "ci",
     "github actions",
     "gh",
-    "status line",
+    "prompt hint",
     "workflow"
   ],
   "userConfig": {

@@ -1,10 +1,12 @@
 # ci
 
-Keeps the latest GitHub Actions run for the branch you are on in the status line, so you see CI
-go green or red without leaving Claude Code.
+Keeps the latest GitHub Actions run for the branch you are on in the dim hint line under the
+prompt, so you see CI go green or red without leaving Claude Code.
 
 ```
-CI ● passing · build        CI ◌ running · test        CI ✗ failing · deploy
+? for shortcuts · CI ● passing · build
+? for shortcuts · CI ◌ running · test
+? for shortcuts · CI ✗ failing · deploy
 ```
 
 It refreshes on a timer and after each turn, and shows one toast with the run's link when a run
@@ -21,9 +23,9 @@ Needs the [`gh` CLI](https://cli.github.com), signed in, and a repository on Git
 
 ## Use
 
-Nothing to do: the line appears once the session starts in a git branch with runs. `/ci`
-refreshes now and prints the run's state with its link. Off a branch, or without `gh`, the line
-is left empty.
+Nothing to do: the segment appears after Claude Code's own hint once the session starts in a git
+branch with runs. `/ci` refreshes now and prints the run's state with its link. Off a branch, or
+without `gh`, the hint line is left as Claude Code draws it.
 
 ## Configuration
 
@@ -35,10 +37,11 @@ is left empty.
 ## What it touches
 
 Events: `session.start` (registers `/ci`, starts the timer), `turn.complete` (main
-conversation turns), `command.run` (`/ci`).
+conversation turns), `command.run` (`/ci`), `ui.render` (`PromptHint`: adds its segment and
+keeps Claude Code's hint and other mods' segments).
 
 Capabilities: `$.process.run` for `git branch --show-current` and `gh run list` (read-only;
-`gh` makes its own network requests), `$.clock.every`, `$.ui.status`, `$.ui.toast`, `$.state`.
+`gh` makes its own network requests), `$.clock.every`, `$.ui.toast`, `$.ui.resolve`, `$.state`.
 No file or model access and no network access of its own.
 
 ## Limitations
@@ -46,3 +49,5 @@ No file or model access and no network access of its own.
 - One run: the latest on the branch (or of the chosen workflow). Several workflows on one push
   show whichever ran last.
 - Each refresh is a `gh` call, so a short `poll_seconds` spends GitHub API quota.
+- The prompt hint is drawn on the terminal and the desktop app only. On a narrow line the
+  segment is cut (or left out), never Claude Code's own hint.

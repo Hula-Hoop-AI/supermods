@@ -14,6 +14,6 @@ export type WorktreeScan = { baseRef: string; worktrees: Worktree[] };
 
 declare module 'claude-code' {
   interface PluginState {
-    'worktrees': { scan: WorktreeScan; note: string };
+    'worktrees': { scan: WorktreeScan; note: string; hint: string };
   }
 }

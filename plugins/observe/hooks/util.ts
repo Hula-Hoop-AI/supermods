@@ -1,4 +1,5 @@
 import type { PluginOptions } from 'claude-code'
+import type { Target } from '../types'
 
 type Option = PluginOptions[string] | undefined
 
@@ -29,3 +30,9 @@ export function age(ms: number): string {
   if (mins < 48 * 60) return `${Math.floor(mins / 60)}h`
   return `${Math.floor(mins / 1440)}d`
 }
+
+// The two per-container panes the Modal and Docker tabs open from a row's buttons.
+export const DETAILS = ['logs', 'metrics'] as const
+export type Detail = (typeof DETAILS)[number]
+
+export const targetOf = ({ source, container_id, name, context }: Target): Target => ({ source, container_id, name, context })

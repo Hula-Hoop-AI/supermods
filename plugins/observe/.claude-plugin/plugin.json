@@ -1,7 +1,7 @@
 {
   "name": "observe",
-  "version": "0.1.0",
-  "description": "An /observe pane with a tab per provider: Docker containers, Modal containers and their cost, and Render and Vercel deploys with the current git branch highlighted. `/observe docker|modal|render|vercel` opens it on that tab",
+  "version": "0.2.0",
+  "description": "An /observe pane with a tab per provider: Docker and Modal containers with each one's live logs and GPU, CPU and RAM use (and Modal's cost), and Render and Vercel deploys (Vercel grouped by app under its production URL) with the current git branch highlighted. `/observe docker|modal|render|vercel` opens it on that tab",
   "author": { "name": "Ariel Porath" },
   "license": "MIT",
   "keywords": ["mod", "observability", "pane", "docker", "containers", "modal", "cost", "render", "vercel", "deployments"],
@@ -39,6 +39,14 @@
       "title": "Modal environment",
       "description": "The Modal environment to list, e.g. main or dev. Empty follows MODAL_ENVIRONMENT, then your modal profile's environment (modal config set-environment), then the workspace default.",
       "default": ""
+    },
+    "detail_refresh_seconds": {
+      "type": "number",
+      "title": "Container logs and metrics refresh (seconds)",
+      "description": "How often a Modal or Docker container's logs and metrics panes refresh while open.",
+      "default": 5,
+      "min": 2,
+      "max": 3600
     },
     "render_services": {
       "type": "string",

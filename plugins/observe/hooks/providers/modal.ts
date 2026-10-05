@@ -2,7 +2,7 @@ import type { PluginOptions } from 'claude-code'
 
 import type { Io } from '../io'
 import type { Carry, ObserveRow, Snapshot } from '../../types'
-import { age, lastLine, message, plural } from '../util'
+import { age, DETAILS, lastLine, message, plural } from '../util'
 import type { ProviderOf } from './index'
 import { HELPER_PY, helperArgv } from './modal-helper'
 
@@ -76,24 +76,28 @@ function money(dollars: number | undefined): string {
   return dollars < 0.01 ? '<$0.01' : `$${dollars.toFixed(2)}`
 }
 
-export function appRows(apps: App[], costs: Record<string, number> | undefined, now: number): ObserveRow[] {
-  return apps.map(a => {
-    const oldest = Math.min(...a.containers.map(c => c.started_at || Infinity))
-    const isRunning = Number.isFinite(oldest)
-    return {
-      id: a.app_id,
-      state: isRunning ? 'ok' : 'busy',
-      title: a.app_name || a.app_id,
+// ULIDs share their leading (time) characters, so the tail tells containers apart.
+export const shortId = (id: string) => `…${id.slice(-6)}`
+
+// One row per container, by app then start time (pending last). Modal bills per app, so each
+// row repeats its app's cost.
+export function containerRows(apps: App[], costs: Record<string, number> | undefined, now: number): ObserveRow[] {
+  return apps
+    .flatMap(a => a.containers.map(c => ({ a, c, name: a.app_name || a.app_id })))
+    .sort((x, y) => x.name.localeCompare(y.name) || (x.c.started_at || Infinity) - (y.c.started_at || Infinity))
+    .map(({ a, c, name }) => ({
+      id: c.container_id,
+      state: c.started_at ? 'ok' : 'busy',
+      title: name,
       tags: [
-        ...(a.containers.length > 1 ? [{ text: `×${a.containers.length}`, bold: true }] : []),
+        { text: shortId(c.container_id), dimColor: true },
         ...(a.created_by !== undefined ? [{ text: a.created_by || 'unknown', color: 'cyan' }] : []),
         ...(costs ? [{ text: money(costs[a.app_id]), color: 'green' }] : []),
       ],
-      age: isRunning ? age(now - oldest * 1000) : 'pending',
+      age: c.started_at ? age(now - c.started_at * 1000) : 'pending',
       owner: a.created_by,
-      count: a.containers.length,
-    }
-  })
+      actions: DETAILS.map(key => ({ key, label: key })),
+    }))
 }
 
 export type ModalConfig = { environment: string }
@@ -107,7 +111,7 @@ export async function fetchModal(io: Io, cfg: ModalConfig, prev: Snapshot, force
   const fresh = !force && kept?.costsAt !== undefined && now - kept.costsAt < COST_REFRESH_MS ? kept : undefined
   const [listing, carry] = await Promise.all([listContainers(io, env), fresh ?? fetchCosts(io, now)])
   return {
-    rows: appRows(listing.apps, carry.costs, now),
+    rows: containerRows(listing.apps, carry.costs, now),
     me: listing.me,
     context: listing.env ?? 'default env',
     error: listing.error,
@@ -124,7 +128,7 @@ export function modal(options: PluginOptions): ProviderOf<'modal'> {
     id: 'modal',
     title: 'Modal',
     config: { environment: String(options.modal_environment ?? '').trim() },
-    footnote: `cost: billed full hours, last ${COST_DAYS}d`,
+    footnote: `cost: per app, billed full hours, last ${COST_DAYS}d`,
     intervalMs: () => POLL_MS,
     // The filter needs creators, which only the helper provides.
     toggles: snap => (snap.me === undefined ? [] : [{ key: MINE, on: 'Mine only', off: 'All runs' }]),
@@ -133,7 +137,7 @@ export function modal(options: PluginOptions): ProviderOf<'modal'> {
       const rows = onlyMine ? snap.rows.filter(r => r.owner === snap.me) : snap.rows
       return {
         rows,
-        summary: `${plural(rows.reduce((n, r) => n + (r.count ?? 1), 0), 'running container')}`,
+        summary: plural(rows.length, 'running container'),
         empty: onlyMine ? `No runs by ${snap.me}.` : 'Nothing running.',
       }
     },
