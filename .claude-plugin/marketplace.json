@@ -8,22 +8,8 @@
   },
   "plugins": [
     {
-      "name": "code-garden",
-      "source": "./plugins/fun/code-garden",
-      "description": "A plant in the band above the prompt that grows with every tool call and finished turn, wilts when a tool fails, and keeps growing across sessions.",
-      "version": "0.1.1",
-      "category": "fun",
-      "keywords": [
-        "fun",
-        "plant",
-        "companion",
-        "band",
-        "progress"
-      ]
-    },
-    {
-      "name": "ci-beacon",
-      "source": "./plugins/git/ci-beacon",
+      "name": "ci",
+      "source": "./plugins/ci",
       "description": "Status line with the latest GitHub Actions run for the current branch, refreshed on a timer and after each turn, with a toast when a run finishes.",
       "version": "0.1.0",
       "category": "git",
@@ -36,38 +22,67 @@
       ]
     },
     {
-      "name": "git-account-hint",
-      "source": "./plugins/git/git-account-hint",
-      "description": "When GitHub refuses a git command for the account it used, tells Claude which other gh accounts are signed in and how to run the command as one of them.",
-      "version": "0.1.0",
-      "category": "git",
+      "name": "debugger",
+      "source": "./plugins/debugger",
+      "description": "A step debugger for the agent loop: pause at prompts, model requests, responses, tool calls and results; inspect and edit them; play, step or stop.",
+      "version": "0.2.0",
+      "category": "session",
       "keywords": [
-        "git",
-        "github",
-        "gh",
-        "push",
-        "permission denied",
-        "accounts",
-        "authentication"
+        "debugger",
+        "breakpoints",
+        "step",
+        "pause",
+        "inspect",
+        "tool calls"
       ]
     },
     {
-      "name": "worktree-hud",
-      "source": "./plugins/git/worktree-hud",
-      "description": "Status line with the current git worktree, branch and listening ports, and a /worktrees pane to review and clear finished worktrees.",
-      "version": "0.1.1",
-      "category": "git",
+      "name": "focus-timer",
+      "source": "./plugins/focus-timer",
+      "description": "A focus timer in the band above the prompt: /focus-timer starts a block, the band counts it down with pause, skip and stop buttons, a toast marks each switch, and every fourth break is a long one.",
+      "version": "0.2.0",
+      "category": "work",
       "keywords": [
-        "git",
-        "worktree",
-        "status line",
-        "ports",
-        "cleanup"
+        "focus",
+        "pomodoro",
+        "timer",
+        "band",
+        "productivity"
+      ]
+    },
+    {
+      "name": "garden",
+      "source": "./plugins/garden",
+      "description": "A plant in the band above the prompt that grows with every tool call and finished turn, wilts when a tool fails, and keeps growing across sessions.",
+      "version": "0.1.1",
+      "category": "fun",
+      "keywords": [
+        "fun",
+        "plant",
+        "companion",
+        "band",
+        "progress"
+      ]
+    },
+    {
+      "name": "issues",
+      "source": "./plugins/issues",
+      "description": "A /issues pane of the open issues assigned to you across GitHub, Linear, Jira and monday.com; press an issue to put its key, title and link in your prompt",
+      "version": "0.1.1",
+      "category": "work",
+      "keywords": [
+        "integrations",
+        "issues",
+        "pane",
+        "github",
+        "linear",
+        "jira",
+        "monday"
       ]
     },
     {
       "name": "observe",
-      "source": "./plugins/observability/observe",
+      "source": "./plugins/observe",
       "description": "An /observe pane with a tab per provider: Docker containers, Modal containers and their cost, and Render and Vercel deploys with the current git branch highlighted. `/observe docker|modal|render|vercel` opens it on that tab",
       "version": "0.1.0",
       "category": "observability",
@@ -84,42 +99,8 @@
       ]
     },
     {
-      "name": "guard",
-      "source": "./plugins/safety/guard",
-      "description": "Holds destructive Bash commands until you run, block or allow them, and blocks Claude from reading secret-bearing files (.env, SSH keys, cloud credentials, your own globs).",
-      "version": "0.1.0",
-      "category": "safety",
-      "keywords": [
-        "guard",
-        "safety",
-        "guardrails",
-        "bash",
-        "rm -rf",
-        "force push",
-        "git reset",
-        "confirmation",
-        "secrets",
-        "permissions"
-      ]
-    },
-    {
-      "name": "agent-debugger",
-      "source": "./plugins/session/agent-debugger",
-      "description": "A step debugger for the agent loop: pause at prompts, model requests, responses, tool calls and results; inspect and edit them; play, step or stop.",
-      "version": "0.2.0",
-      "category": "session",
-      "keywords": [
-        "debugger",
-        "breakpoints",
-        "step",
-        "pause",
-        "inspect",
-        "tool calls"
-      ]
-    },
-    {
-      "name": "context-tide",
-      "source": "./plugins/session/context-tide",
+      "name": "tide",
+      "source": "./plugins/tide",
       "description": "Band above the prompt that shows the context window as a tide: a fill bar, the trend per turn, a sparkline of recent turns and how many turns are left before compaction.",
       "version": "0.1.1",
       "category": "session",
@@ -133,7 +114,7 @@
     },
     {
       "name": "trace",
-      "source": "./plugins/session/trace",
+      "source": "./plugins/trace",
       "description": "A /trace pane with two tabs: the skills that loaded this session (when, from where, who invoked them, how large) and the web pages Claude fetched or saw in search results, ready to insert as citations",
       "version": "0.1.0",
       "category": "session",
@@ -146,33 +127,17 @@
       ]
     },
     {
-      "name": "focus-timer",
-      "source": "./plugins/work/focus-timer",
-      "description": "A focus timer in the band above the prompt: /focus-timer starts a block, the band counts it down with pause, skip and stop buttons, a toast marks each switch, and every fourth break is a long one.",
-      "version": "0.2.0",
-      "category": "work",
-      "keywords": [
-        "focus",
-        "pomodoro",
-        "timer",
-        "band",
-        "productivity"
-      ]
-    },
-    {
-      "name": "my-issues",
-      "source": "./plugins/work/my-issues",
-      "description": "A /issues pane of the open issues assigned to you across GitHub, Linear, Jira and monday.com; press an issue to put its key, title and link in your prompt",
+      "name": "worktrees",
+      "source": "./plugins/worktrees",
+      "description": "Status line with the current git worktree, branch and listening ports, and a /worktrees pane to review and clear finished worktrees.",
       "version": "0.1.1",
-      "category": "work",
+      "category": "git",
       "keywords": [
-        "integrations",
-        "issues",
-        "pane",
-        "github",
-        "linear",
-        "jira",
-        "monday"
+        "git",
+        "worktree",
+        "status line",
+        "ports",
+        "cleanup"
       ]
     }
   ]

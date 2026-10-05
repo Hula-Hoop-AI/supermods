@@ -1,6 +1,6 @@
 ---
 name: create-mod
-description: Use when creating, porting, or polishing a Claude Code mod for the supermods repo — scaffolds it under plugins/<category>/<name>/, makes it generic and configurable, tests it on every surface, registers it in the marketplace, and leaves it ready to commit.
+description: Use when creating, porting, or polishing a Claude Code mod for the supermods repo — scaffolds it under plugins/<name>/, makes it generic and configurable, tests it on every surface, registers it in the marketplace, and leaves it ready to commit.
 ---
 
 # Create a mod for supermods
@@ -25,7 +25,7 @@ not belong here. The bar is: **generic, configurable, tested, and small.**
 The mods API is early access and changes between Claude Code releases. **Never write API calls
 from memory.** Check every event name, field, and `$` method against:
 
-1. `plugins/<category>/<name>/.claude-plugin/types/claude-code/index.d.ts`: written by the engine the first
+1. `plugins/<name>/.claude-plugin/types/claude-code/index.d.ts`: written by the engine the first
    time the mod loads (step 3). It is the exact contract for the installed version, and the
    header comment explains the module environment.
 2. The docs: https://code.claude.com/docs/en/plugins/mods/overview.md, then `create`, `events`,
@@ -42,11 +42,12 @@ If the types and the docs disagree, the types win.
 - State in one sentence what the mod does and for whom. If it's vague, ask the user.
 - Check `.claude-plugin/marketplace.json` and `plugins/`. If an existing mod overlaps, extend
   it instead of adding a near-duplicate.
-- Name it in kebab-case, after what it does rather than how it works (`secret-redactor`, not
-  `tool-output-regex-hook`).
-- Pick its category, the directory it lives in: `observability` (systems outside the session),
-  `session` (the agent loop itself), `safety`, `git`, `work` or `fun`. Mod names stay unique
-  across categories. Add a category only when none fits.
+- Name it after its slash command, in kebab-case: the directory, the plugin name and the
+  command are the same word (`plugins/tide/` installs as `tide` and adds `/tide`). A mod without
+  a command does not belong here.
+- Pick its `category` for the marketplace entry and the README heading: `observability`
+  (systems outside the session), `session` (the agent loop itself), `git`, `work` or `fun`.
+  The category is metadata only; it is not part of the path.
 - Several views of one kind of thing are one mod, not several: a provider or tab per view,
   picked by the command's argument (`/observe docker`, `/trace sources`). Add a provider to the
   existing mod (`observe/hooks/providers/`, `trace/hooks/recorders/`) before starting a new one.
@@ -69,7 +70,7 @@ few events as possible.
 ### 3. Scaffold
 
 ```
-plugins/<category>/<name>/
+plugins/<name>/
 ├── .claude-plugin/
 │   └── plugin.json
 ├── hooks/
@@ -99,7 +100,7 @@ a user might want to change, and look up its exact schema in the docs.
 To load the mod with hot reload, which also generates `.claude-plugin/types/`, run:
 
 ```
-claude --plugin-dir plugins/<category>/<name>
+claude --plugin-dir plugins/<name>
 ```
 
 Generated files under `.claude-plugin/types/` are git-ignored. Never edit or commit them.
@@ -122,8 +123,8 @@ Generated files under `.claude-plugin/types/` are git-ignored. Never edit or com
   `observe/hooks/io.ts`). `$.env.get` takes a literal name.
 - A pane with tabs is drawn with `tabPane` from `hooks/tab-pane.tsx`, so every tabbed mod has
   the same layout: tabs, a summary line with actions, rows, a footer. The canonical file is
-  `shared/tab-pane.tsx`; copy it in with `scripts/sync-shared.sh` and never edit a copy
-  (`scripts/sync-shared.sh --check` fails on drift). Fit new data into its `PaneModel` and `Row`
+  `shared/tab-pane.tsx`; copy it in with `shared/sync.sh` and never edit a copy
+  (`shared/sync.sh --check` fails on drift). Fit new data into its `PaneModel` and `Row`
   before changing the layout for every mod.
 - `types/index.d.ts` must be self-contained: no imports.
 - Name constants at the top of the file. Comment only the non-obvious *why*.
@@ -147,13 +148,13 @@ Stub every external noun (`process.run`, `http.fetch`, `fs.read`, `model.complet
 ### 6. Verify (all of these must pass)
 
 ```bash
-claude plugin validate plugins/<category>/<name> --strict   # manifest + hooks; review the capability list it prints
-claude plugin test plugins/<category>/<name>                # all tests green
-npx -y -p typescript tsc -p plugins/<category>/<name>       # no type errors (after the types were generated in step 3)
-scripts/sync-shared.sh --check                              # only for a mod that carries hooks/tab-pane.tsx
+claude plugin validate plugins/<name> --strict   # manifest + hooks; review the capability list it prints
+claude plugin test plugins/<name>                # all tests green
+npx -y -p typescript tsc -p plugins/<name>       # no type errors (after the types were generated in step 3)
+shared/sync.sh --check                              # only for a mod that carries hooks/tab-pane.tsx
 ```
 
-Then try it for real with `claude --plugin-dir plugins/<category>/<name>` and exercise the main path once.
+Then try it for real with `claude --plugin-dir plugins/<name>` and exercise the main path once.
 Report to the user what you ran and what happened. Don't claim it works without this step.
 
 ### 7. Register and document
@@ -161,13 +162,13 @@ Report to the user what you ran and what happened. Don't claim it works without 
 Add an entry to `.claude-plugin/marketplace.json` `plugins`:
 
 ```json
-{ "name": "<name>", "source": "./plugins/<category>/<name>", "description": "<same as plugin.json>", "version": "0.1.0", "category": "<category>", "keywords": ["<area>"] }
+{ "name": "<name>", "source": "./plugins/<name>", "description": "<same as plugin.json>", "version": "0.1.0", "category": "<category>", "keywords": ["<area>"] }
 ```
 
 Run `claude plugin validate . --strict` from the repo root. The marketplace entry and
 `plugin.json` must agree.
 
-Write `plugins/<category>/<name>/README.md` with these sections:
+Write `plugins/<name>/README.md` with these sections:
 
 1. **What it does.** One or two sentences, plus a screenshot or example output if the mod has UI.
 2. **Install.** The `/plugin install <name>@supermods` line.
@@ -181,7 +182,7 @@ Write `plugins/<category>/<name>/README.md` with these sections:
 
 Show the user the file tree, the verification output, and a suggested commit message
 (`feat(<name>): <what it does>`). Don't commit, tag, or push unless the user says so. For a
-release, run `claude plugin tag plugins/<category>/<name>`, which creates `<name>--v<version>`.
+release, run `claude plugin tag plugins/<name>`, which creates `<name>--v<version>`.
 
 ## Final checklist
 
