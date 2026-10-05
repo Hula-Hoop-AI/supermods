@@ -1,9 +1,9 @@
 import { atom, read, update } from 'claude-code';
 import type { EngineInterface, PluginOptions, Register } from 'claude-code';
 
-import type { TripwireHold } from '../types';
+import type { GuardHold } from '../../types';
 
-const PANE = 'tripwire';
+const PANE = 'guard';
 const POLL_SECONDS = 1;
 const IMPACT_TIMEOUT_MS = 5000;
 const IMPACT_LINES = 8;
@@ -17,9 +17,9 @@ type Impact = 'deleted paths' | 'uncommitted' | 'cleaned' | 'pushed';
 type Rule = { name: string; all: RegExp[]; unless?: RegExp; impact?: Impact };
 type Pending = { decision: Decision | null };
 
-const holds = atom({ plugin: 'tripwire', key: 'holds' } as const, []);
-const allowed = atom({ plugin: 'tripwire', key: 'allowed' } as const, []);
-const note = atom({ plugin: 'tripwire', key: 'note' } as const, '');
+const holds = atom({ plugin: 'guard', key: 'holds' } as const, []);
+const allowed = atom({ plugin: 'guard', key: 'allowed' } as const, []);
+const note = atom({ plugin: 'guard', key: 'note' } as const, '');
 
 async function run($: EngineInterface, argv: string[]): Promise<{ exitCode: number; stdout: string; stderr: string }> {
   try {
@@ -100,7 +100,7 @@ export const RULES: Rule[] = [
 ];
 
 export function extraRules(options: PluginOptions): Rule[] {
-  const patterns = options['extra_patterns'];
+  const patterns = options['bash_extra_patterns'];
   if (!Array.isArray(patterns)) return [];
   return patterns.flatMap((source, index) => {
     try {
@@ -134,18 +134,18 @@ async function awaitDecision($: EngineInterface, signal: AbortSignal, pending: P
   return pending.decision;
 }
 
-async function askInDialog($: EngineInterface, held: TripwireHold): Promise<Decision | 'unseen'> {
+async function askInDialog($: EngineInterface, held: GuardHold): Promise<Decision | 'unseen'> {
   try {
-    const answer = await $.ui.ask(`Tripwire: run this ${held.rule}? ${held.command}`, ['Run it', 'Block it']);
+    const answer = await $.ui.ask(`Guard: run this ${held.rule}? ${held.command}`, ['Run it', 'Block it']);
     return answer === 'Run it' ? 'run' : 'block';
   } catch {
     return 'unseen';
   }
 }
 
-export const register: Register = (on, options) => {
+export const destructiveBash: Register = (on, options) => {
   const rules = [...RULES, ...extraRules(options)];
-  const holdMs = Number(options['hold_seconds']) * 1000;
+  const holdMs = Number(options['bash_hold_seconds']) * 1000;
   // One slot per held call, by the hold's id; the pane decides the oldest.
   const pending = new Map<string, Pending>();
   let nextId = 0;
@@ -160,10 +160,10 @@ export const register: Register = (on, options) => {
     let failure = '';
     try {
       const impact = (await impactOf($, trip.rule.impact, trip.segment)).slice(0, IMPACT_LINES);
-      const held: TripwireHold = { id, command: e.command, rule: trip.rule.name, impact };
+      const held: GuardHold = { id, command: e.command, rule: trip.rule.name, impact };
       pending.set(id, slot);
       await update($, holds, list => [...list, held]);
-      const opened = await $.ui.open({ id: PANE, title: 'Tripwire', focus: true, rows: 12 });
+      const opened = await $.ui.open({ id: PANE, title: 'Guard', focus: true, rows: 12 });
       decision = opened.isPlaced ? await awaitDecision($, next.signal, slot, holdMs) : await askInDialog($, held);
     } catch (error) {
       failure = messageOf(error);

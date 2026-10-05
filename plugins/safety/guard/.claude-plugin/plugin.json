@@ -1,0 +1,79 @@
+{
+  "name": "guard",
+  "version": "0.1.0",
+  "description": "Holds destructive Bash commands until you run, block or allow them, and blocks Claude from reading secret-bearing files (.env, SSH keys, cloud credentials, your own globs).",
+  "types": "./types/index.d.ts",
+  "author": {
+    "name": "nadav-grs"
+  },
+  "license": "MIT",
+  "keywords": [
+    "mod",
+    "guard",
+    "safety",
+    "guardrails",
+    "bash",
+    "rm -rf",
+    "force push",
+    "git reset",
+    "confirmation",
+    "secrets",
+    "permissions"
+  ],
+  "userConfig": {
+    "destructive_bash": {
+      "type": "boolean",
+      "title": "Hold destructive Bash commands",
+      "description": "Hold a destructive Bash command (rm -rf, git reset --hard, force push, ...) until you run it once, block it, or allow its rule for the session.",
+      "default": true
+    },
+    "bash_extra_patterns": {
+      "type": "string",
+      "title": "Extra destructive patterns",
+      "description": "More regular expressions (JavaScript syntax) that hold a Bash command, one per entry.",
+      "multiple": true,
+      "default": []
+    },
+    "bash_hold_seconds": {
+      "type": "number",
+      "title": "Hold timeout",
+      "description": "Seconds to wait for your answer before a held command is blocked.",
+      "default": 300,
+      "min": 10,
+      "max": 3600
+    },
+    "secret_reads": {
+      "type": "boolean",
+      "title": "Block reads of secret files",
+      "description": "Block Read, Glob, Grep and, best effort, Bash from reading secret-bearing files. Writes are never blocked.",
+      "default": true
+    },
+    "secrets_protected": {
+      "type": "string",
+      "multiple": true,
+      "title": "Extra protected globs",
+      "description": "Globs to protect on top of the built-in list, e.g. ~/.config/gh/hosts.yml or **/secrets/**. ~/ is your home; a glob not starting with / or ~/ matches at any depth.",
+      "default": []
+    },
+    "secrets_allowed": {
+      "type": "string",
+      "multiple": true,
+      "title": "Allowed globs",
+      "description": "Globs that are never blocked, even when a protected glob matches, e.g. **/fixtures/**/*.pem. Added to the built-in exceptions (.env.example, .env.sample, .env.template, *.pub).",
+      "default": []
+    },
+    "secrets_check_bash": {
+      "type": "boolean",
+      "title": "Check Bash commands for secret reads",
+      "description": "Also block Bash commands whose words name a protected path (cat ~/.ssh/id_rsa, source .env). Best effort: a command can always build a path the check cannot see.",
+      "default": true
+    },
+    "secrets_mode": {
+      "type": "string",
+      "title": "On a secret read",
+      "description": "What happens when Read, Glob, Grep or a Bash command reads a protected path: deny refuses it, ask puts it to your permission prompt, off allows it. Writes are never blocked.",
+      "options": ["deny", "ask", "off"],
+      "default": "deny"
+    }
+  }
+}

@@ -59,10 +59,10 @@ const mode = (v: unknown): Mode => (MODES.find(m => m === v) ?? 'deny')
 
 export function parseSettings(options: PluginOptions): Settings {
   return {
-    protected: [...DEFAULT_PROTECTED, ...list(options.protected)],
-    allowed: [...DEFAULT_ALLOWED, ...list(options.allowed)],
-    checkBash: options.check_bash !== false,
-    mode: mode(options.mode),
+    protected: [...DEFAULT_PROTECTED, ...list(options.secrets_protected)],
+    allowed: [...DEFAULT_ALLOWED, ...list(options.secrets_allowed)],
+    checkBash: options.secrets_check_bash !== false,
+    mode: mode(options.secrets_mode),
   }
 }
 
@@ -224,11 +224,11 @@ export function reasonFor(
   tool: string, mode: Exclude<Mode, 'off'>, path: string, glob: string, home: string | undefined,
 ): string {
   const what = `${display(path, home)} matches the protected pattern "${glob}"`
-  if (mode === 'ask') return `sensitive-paths: this ${tool} call touches a protected path: ${what}.`
-  const how = tool === 'Bash' ? ', or turns off its check_bash option' : ''
+  if (mode === 'ask') return `guard: this ${tool} call touches a protected path: ${what}.`
+  const how = tool === 'Bash' ? ', or turns off its secrets_check_bash option' : ''
   return (
-    `sensitive-paths blocked this ${tool} call: ${what}. ` +
+    `guard blocked this ${tool} call: ${what}. ` +
     `Do not try to reach this file another way; tell the user. To allow it, the user adds a glob covering it ` +
-    `to the sensitive-paths plugin's "allowed" option${how}.`
+    `to the guard plugin's "secrets_allowed" option${how}.`
   )
 }

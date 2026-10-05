@@ -1,12 +1,12 @@
-import { expect, test } from 'claude-code/testing';
+import { expect, mock, test } from 'claude-code/testing';
 
-import { RULES, extraRules, rmTargets, tripped } from '../hooks/register';
+import { RULES, extraRules, rmTargets, tripped } from '../hooks/rules/destructive-bash';
 
 const PANE = {
-  plugin: 'tripwire',
+  plugin: 'guard',
   component: 'Pane',
-  requestId: 'tripwire',
-  props: { title: 'Tripwire', isFocused: true, bodyColumns: 80, placement: 'dock', scroll: { offset: 0, bodyRows: 12 }, view: {} },
+  requestId: 'guard',
+  props: { title: 'Guard', isFocused: true, bodyColumns: 80, placement: 'dock', scroll: { offset: 0, bodyRows: 12 }, view: {} },
 } as const;
 
 // Stands for the engine. Each `sleep` the hold polls with waits at a gate the test opens with `pump`,
@@ -19,6 +19,9 @@ function engine(on: any, { isPlaced = true, asked = '' } = {}) {
   let gate = new Promise<void>(resolve => (open = resolve));
   let waiters: (() => void)[] = [];
   let isWaiting = false;
+  // What the secret-reads rule set looks up for every Bash command.
+  mock.env(on, { HOME: '/home/u' });
+  on('session.cwd', () => ({ value: '/home/u/proj' }));
   on('tool.call', ($: any, e: any) => {
     if (e.tool === 'AskUserQuestion') {
       if (asked === '') throw new Error('dismissed');
@@ -82,7 +85,7 @@ test('the rules and the rm target parser', () => {
   expect(rmTargets('rm -rf ./build dist')).toEqual(['./build', 'dist']);
   expect(rmTargets('rm -r -f node_modules')).toEqual(['node_modules']);
   expect(rmTargets(`rm -rf "My Project/build" 'old dir' -- -dashed`)).toEqual(['My Project/build', 'old dir', '-dashed']);
-  expect(extraRules({ extra_patterns: ['terraform\\s+destroy', '('] }).map(rule => rule.name)).toEqual(['extra pattern 1']);
+  expect(extraRules({ bash_extra_patterns: ['terraform\\s+destroy', '('] }).map(rule => rule.name)).toEqual(['extra pattern 1']);
 });
 
 test('a held command runs once the Run button is pressed, with its impact shown on each surface', async ($: any, on: any) => {
@@ -178,7 +181,7 @@ test('dismissing the question dialog blocks the command', async ($: any, on: any
   expect((await $.tool.call({ tool: 'Bash', command: 'git branch -D old' })).deny).toContain('nobody could be asked');
 });
 
-test('an extra pattern trips the wire too', { options: { extra_patterns: ['terraform\\s+destroy'] } }, async ($: any, on: any) => {
+test('an extra pattern trips the wire too', { options: { bash_extra_patterns: ['terraform\\s+destroy'] } }, async ($: any, on: any) => {
   const now = engine(on);
   const call = $.tool.call({ tool: 'Bash', command: 'terraform destroy -auto-approve' });
   await now.held();

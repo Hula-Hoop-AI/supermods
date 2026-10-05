@@ -1,9 +1,9 @@
 import { describe, expect, test } from 'claude-code/testing'
 
-import { matchGlob } from '../hooks/glob'
+import { matchGlob } from '../hooks/rules/secret-reads/glob'
 import {
   anchorGlob, bashWords, display, normalizePath, parseSettings, protectedBy, targetsOf,
-} from '../hooks/policy'
+} from '../hooks/rules/secret-reads/policy'
 
 const HOME = '/home/u'
 const CWD = '/home/u/proj'
@@ -110,25 +110,25 @@ describe('defaults', () => {
 
 describe('settings', () => {
   test('protected adds globs; a bare name matches at any depth', () => {
-    const s = parseSettings({ protected: ['secrets.yml', '~/.config/gh/hosts.yml'] })
+    const s = parseSettings({ secrets_protected: ['secrets.yml', '~/.config/gh/hosts.yml'] })
     expect(protectedBy(s, '/x/y/secrets.yml', HOME)).toBe('secrets.yml')
     expect(protectedBy(s, '/home/u/.config/gh/hosts.yml', HOME)).toBe('~/.config/gh/hosts.yml')
     expect(protectedBy(s, '/home/u/proj/.env', HOME)).toBe('**/.env')
   })
   test('allowed wins over protected, and keeps the built-in exceptions', () => {
-    const s = parseSettings({ allowed: ['**/fixtures/**'] })
+    const s = parseSettings({ secrets_allowed: ['**/fixtures/**'] })
     expect(protectedBy(s, '/home/u/proj/fixtures/tls/test.pem', HOME)).toBeUndefined()
     expect(protectedBy(s, '/home/u/proj/.env.example', HOME)).toBeUndefined()
     expect(protectedBy(s, '/home/u/proj/.env', HOME)).toBe('**/.env')
   })
   test('mode defaults to deny', () => {
     expect(parseSettings({}).mode).toBe('deny')
-    expect(parseSettings({ mode: 'ask' }).mode).toBe('ask')
-    expect(parseSettings({ mode: 'off' }).mode).toBe('off')
-    expect(parseSettings({ mode: 'bogus' }).mode).toBe('deny')
+    expect(parseSettings({ secrets_mode: 'ask' }).mode).toBe('ask')
+    expect(parseSettings({ secrets_mode: 'off' }).mode).toBe('off')
+    expect(parseSettings({ secrets_mode: 'bogus' }).mode).toBe('deny')
   })
   test('check_bash: false turns the Bash check off', () => {
-    expect(targetsOf('Bash', { command: 'cat .env' }, parseSettings({ check_bash: false }).checkBash)).toEqual([])
+    expect(targetsOf('Bash', { command: 'cat .env' }, parseSettings({ secrets_check_bash: false }).checkBash)).toEqual([])
     expect(targetsOf('Bash', { command: 'cat .env' }, parseSettings({}).checkBash).length).toBeGreaterThan(0)
   })
 })

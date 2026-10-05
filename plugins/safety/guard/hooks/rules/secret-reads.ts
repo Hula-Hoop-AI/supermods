@@ -1,7 +1,7 @@
 import type { EngineInterface, Register } from 'claude-code'
 
-import { normalizePath, parseSettings, protectedBy, reasonFor, targetsOf } from './policy'
-import type { Mode, Settings } from './policy'
+import { normalizePath, parseSettings, protectedBy, reasonFor, targetsOf } from './secret-reads/policy'
+import type { Mode, Settings } from './secret-reads/policy'
 
 type Verdict = { mode: Exclude<Mode, 'off'>; reason: string }
 
@@ -49,11 +49,11 @@ async function safeVerdict(
     return await verdictOf($, settings, tool, args)
   } catch (err) {
     const why = err instanceof Error ? err.message : String(err)
-    return { mode: 'deny', reason: `sensitive-paths could not check this ${tool} call (${why}), so it was refused.` }
+    return { mode: 'deny', reason: `${$.plugin.name} could not check this ${tool} call (${why}), so it was refused.` }
   }
 }
 
-export const register: Register = (on, options) => {
+export const secretReads: Register = (on, options) => {
   const settings = parseSettings(options)
 
   // No tool matcher: Glob and Grep are not in every build's tool list, so the hooks take

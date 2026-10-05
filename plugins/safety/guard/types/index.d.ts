@@ -1,4 +1,4 @@
-export type TripwireHold = {
+export type GuardHold = {
   id: string;
   command: string;
   rule: string;
@@ -7,6 +7,6 @@ export type TripwireHold = {
 
 declare module 'claude-code' {
   interface PluginState {
-    tripwire: { holds: TripwireHold[]; allowed: string[]; note: string };
+    guard: { holds: GuardHold[]; allowed: string[]; note: string };
   }
 }

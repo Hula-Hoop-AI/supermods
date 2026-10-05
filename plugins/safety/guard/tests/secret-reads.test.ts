@@ -25,7 +25,7 @@ test('denies Read of a protected file and names the glob and the way out', async
   machine(on)
   const r = await $.tool.call({ tool: 'Read', file_path: '~/.ssh/id_rsa' })
   expect(r.deny).toMatch(/~\/\.ssh\/id_rsa matches the protected pattern "~\/\.ssh\/\*\*"/)
-  expect(r.deny).toMatch(/"allowed" option/)
+  expect(r.deny).toMatch(/"secrets_allowed" option/)
 })
 
 test('lets ordinary files through untouched', async ($, on) => {
@@ -73,7 +73,7 @@ test('Bash: blocks commands naming protected paths', async ($, on) => {
     'cat ~/.ssh/id_rsa', 'cp .env /tmp/x', 'source .env', '. ./.env', 'base64 < ~/.netrc',
     'cat $HOME/.aws/credentials', 'cd ~/.ssh && ls', 'echo "$(cat .env)"', 'grep TOKEN ~/.npmrc',
   ]) {
-    expect((await $.tool.call({ tool: 'Bash', command })).deny).toMatch(/Bash call.*check_bash/)
+    expect((await $.tool.call({ tool: 'Bash', command })).deny).toMatch(/Bash call.*secrets_check_bash/)
   }
 })
 
@@ -88,24 +88,24 @@ test('Bash: leaves ordinary commands alone', async ($, on) => {
   }
 })
 
-test('check_bash: false lets Bash through', { options: { check_bash: false } }, async ($, on) => {
+test('check_bash: false lets Bash through', { options: { secrets_check_bash: false } }, async ($, on) => {
   machine(on)
   expect(ran(await $.tool.call({ tool: 'Bash', command: 'cat .env' }))).toBe(true)
   expect((await $.tool.call({ tool: 'Read', file_path: '.env' })).deny).toBeDefined()
 })
 
-test('protected adds globs', { options: { protected: ['**/secrets/**'] } }, async ($, on) => {
+test('protected adds globs', { options: { secrets_protected: ['**/secrets/**'] } }, async ($, on) => {
   machine(on)
   expect((await $.tool.call({ tool: 'Read', file_path: 'config/secrets/db.yml' })).deny).toMatch(/"\*\*\/secrets\/\*\*"/)
 })
 
-test('allowed exempts paths', { options: { allowed: ['**/fixtures/**'] } }, async ($, on) => {
+test('allowed exempts paths', { options: { secrets_allowed: ['**/fixtures/**'] } }, async ($, on) => {
   machine(on)
   expect(ran(await $.tool.call({ tool: 'Read', file_path: 'fixtures/test.pem' }))).toBe(true)
   expect((await $.tool.call({ tool: 'Read', file_path: 'test.pem' })).deny).toBeDefined()
 })
 
-test('ask mode passes tool.call on and asks in tool.check', { options: { mode: 'ask' } }, async ($, on) => {
+test('ask mode passes tool.call on and asks in tool.check', { options: { secrets_mode: 'ask' } }, async ($, on) => {
   machine(on)
   expect(ran(await $.tool.call({ tool: 'Read', file_path: '.env' }))).toBe(true)
   const check = await $.tool.check({ tool: 'Read', input: { file_path: '.env' } })
@@ -114,7 +114,7 @@ test('ask mode passes tool.call on and asks in tool.check', { options: { mode: '
   expect((await $.tool.check({ tool: 'Bash', input: { command: 'cat .env' } })).decision).toBe('ask')
 })
 
-test('off mode allows everything', { options: { mode: 'off' } }, async ($, on) => {
+test('off mode allows everything', { options: { secrets_mode: 'off' } }, async ($, on) => {
   machine(on)
   expect(ran(await $.tool.call({ tool: 'Read', file_path: '.env' }))).toBe(true)
   expect((await $.tool.check({ tool: 'Read', input: { file_path: '.env' } })).decision).toBe('allow')
