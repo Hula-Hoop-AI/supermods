@@ -1,0 +1,100 @@
+{
+  "name": "observe",
+  "version": "0.1.0",
+  "description": "An /observe pane with a tab per provider: Docker containers, Modal containers and their cost, and Render and Vercel deploys with the current git branch highlighted. `/observe docker|modal|render|vercel` opens it on that tab",
+  "author": { "name": "Ariel Porath" },
+  "license": "MIT",
+  "keywords": ["mod", "observability", "pane", "docker", "containers", "modal", "cost", "render", "vercel", "deployments"],
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "providers": {
+      "type": "string",
+      "multiple": true,
+      "title": "Providers",
+      "description": "Which tabs the pane has, in this order: docker, modal, render, vercel. Empty shows all four.",
+      "default": ["docker", "modal", "render", "vercel"]
+    },
+    "docker_context": {
+      "type": "string",
+      "title": "Docker context",
+      "description": "The docker context to list (docker --context). Empty follows DOCKER_HOST, then your current context (docker context use).",
+      "default": ""
+    },
+    "docker_all": {
+      "type": "boolean",
+      "title": "Docker: include stopped containers",
+      "description": "Also list exited and created containers (docker ps --all).",
+      "default": false
+    },
+    "docker_refresh_seconds": {
+      "type": "number",
+      "title": "Docker: refresh interval (seconds)",
+      "description": "How often the Docker tab refreshes while it is on screen.",
+      "default": 2,
+      "min": 1,
+      "max": 3600
+    },
+    "modal_environment": {
+      "type": "string",
+      "title": "Modal environment",
+      "description": "The Modal environment to list, e.g. main or dev. Empty follows MODAL_ENVIRONMENT, then your modal profile's environment (modal config set-environment), then the workspace default.",
+      "default": ""
+    },
+    "render_services": {
+      "type": "string",
+      "title": "Render services",
+      "description": "Comma-separated Render service names to show. Empty shows every service, up to the service cap.",
+      "default": ""
+    },
+    "render_max_services": {
+      "type": "number",
+      "title": "Render: service cap",
+      "description": "Most services to list deploys for. A full refresh makes one request per service.",
+      "default": 10,
+      "min": 1,
+      "max": 50
+    },
+    "vercel_team": {
+      "type": "string",
+      "title": "Vercel team",
+      "description": "Vercel team id (team_...) or slug. Empty uses the team in .vercel/project.json, else your personal account.",
+      "default": ""
+    },
+    "vercel_project": {
+      "type": "string",
+      "title": "Vercel project",
+      "description": "Vercel project id or name to show. Empty uses the project linked in .vercel/project.json, else every project.",
+      "default": ""
+    },
+    "deploy_max_rows": {
+      "type": "number",
+      "title": "Deploys: rows",
+      "description": "How many deploys the Render and Vercel tabs list, newest first.",
+      "default": 15,
+      "min": 1,
+      "max": 100
+    },
+    "deploy_refresh_seconds": {
+      "type": "number",
+      "title": "Deploys: refresh interval (seconds)",
+      "description": "How often the Render and Vercel tabs refresh while on screen. On Render, also the longest gap between full refreshes while something builds.",
+      "default": 60,
+      "min": 15,
+      "max": 3600
+    },
+    "deploy_building_refresh_seconds": {
+      "type": "number",
+      "title": "Deploys: refresh interval while building (seconds)",
+      "description": "How often the Render and Vercel tabs re-check while a deploy is building.",
+      "default": 10,
+      "min": 5,
+      "max": 600
+    },
+    "notify_on_finish": {
+      "type": "boolean",
+      "title": "Toast when a branch deploy finishes",
+      "description": "While their tab is not on screen, keep watching deploys of the current git branch that were building and show a toast when each one is ready or fails.",
+      "default": false
+    }
+  }
+}
