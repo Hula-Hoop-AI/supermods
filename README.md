@@ -15,7 +15,7 @@ status lines, and add slash commands. Mods need Claude Code v2.1.287 or later.
 
 | Mod | What it does | Search words |
 |---|---|---|
-| [`agent-debugger`](plugins/session/agent-debugger/) | A step debugger for the agent loop: pause at prompts, model requests, responses, tool calls and results; inspect and edit them; play, step, stop, or re-run from an earlier event. | debugger, breakpoints, step, pause, inspect, tool calls, re-run, rewind |
+| [`agent-debugger`](plugins/session/agent-debugger/) | A step debugger for the agent loop: pause at prompts, model requests, responses, tool calls and results; inspect and edit them; play, step or stop. | debugger, breakpoints, step, pause, inspect, tool calls |
 | [`context-tide`](plugins/session/context-tide/) | Band above the prompt that shows the context window as a tide: a fill bar, the trend per turn, a sparkline of recent turns and how many turns are left before compaction. | context window, tokens, compaction, band, usage |
 | [`trace`](plugins/session/trace/) | A /trace pane with two tabs: the skills that loaded this session (when, from where, who invoked them, how large) and the web pages Claude fetched or saw in search results, ready to insert as citations | observability, skills, web, citations, pane |
 

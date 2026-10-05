@@ -17,8 +17,6 @@ const MESSAGES = [
 // poll waits at a gate the test opens with `pump`, so a hold moves only when told.
 function engine(on: any) {
   mock.clock(on)
-  mock.store(on)
-  on('session.id', () => ({ value: 'session-1' }))
   let open = () => {}
   let gate = new Promise<void>(resolve => (open = resolve))
   let isWaiting = false
@@ -30,7 +28,6 @@ function engine(on: any) {
     return { value: { exitCode: 0, stdout: '', stderr: '', isStdoutTruncated: false, isStderrTruncated: false } }
   })
   on('session.messages', () => ({ value: MESSAGES.map(({ handle, ...row }) => row) }))
-  on('session.usage', () => ({ value: { startedAt: 0, context: { percent: 5, tokens: 100, window: 2000 }, rateLimits: [] } }))
   on('ui.open', () => ({ value: { isPlaced: true } }))
   on('tool.list', () => ({ value: [{ name: 'Bash' }, { name: 'Edit' }, { name: 'mcp__x__y' }] }))
   return {
@@ -48,10 +45,10 @@ test('the pane draws every tab on each surface', async ($: any, on: any) => {
   for (const surface of ['terminal', 'desktop'] as const) {
     const ui = await $.ui.mount({ ...PANE, surface })
     for (const tab of ['breakpoints', 'events']) {
-      await ui.press({ key: `tab-${tab}` })
+      await ui.press({ key: `tab:${tab}` })
       await ui.drawn()
     }
-    await ui.press({ key: 'tab-breakpoints' })
+    await ui.press({ key: 'tab:breakpoints' })
     await ui.press({ key: 'bp-tool' })
     expect(await ui.find({ type: 'Button', text: /\[x\] tool call/ })).toBeDefined()
     await ui.press({ key: 'bp-tool' })
@@ -114,6 +111,43 @@ test('a held tool call runs with the edited argument, and skip refuses it', asyn
   await ui.unmount()
 })
 
+test('a breakpoint checked while an event is held counts for the next one', async ($: any, on: any) => {
+  const { held, pump } = engine(on)
+  on('tool.call', () => ({ result: { stdout: 'ok' }, text: 'ok' }))
+  const ui = await $.ui.mount({ ...PANE, surface: 'desktop' })
+  await ui.press({ key: 'tab:breakpoints' })
+  await ui.press({ key: 'bp-tool' })
+
+  const call = $.tool.call({ tool: 'Bash', command: 'ls' })
+  await held()
+  await ui.press({ key: 'tab:breakpoints' })
+  await ui.press({ key: 'bp-result' })
+  await ui.press({ key: 'play' })
+  pump()
+  await held()
+  expect(await ui.find({ type: 'Text', text: /PAUSED at tool result/ })).toBeDefined()
+  await ui.press({ key: 'play' })
+  pump()
+  await call
+  await ui.unmount()
+})
+
+test('a held tool call shows its arguments and Skip where the surface draws no fields', async ($: any, on: any) => {
+  const { held, pump } = engine(on)
+  on('tool.call', () => ({ result: { stdout: 'ok' }, text: 'ok' }))
+  const ui = await $.ui.mount({ ...PANE, surface: 'mobile' })
+  await ui.press({ key: 'pause' })
+  const call = $.tool.call({ tool: 'Bash', command: 'rm x' })
+  await held()
+  expect(await ui.find({ type: 'Text', text: /rm x/ })).toBeDefined()
+  const skip = await ui.find({ type: 'Button', text: /Skip this call/ })
+  await ui.press({ key: skip.key })
+  pump()
+  expect((await call).deny).toBeDefined()
+  await ui.press({ key: 'play' })
+  await ui.unmount()
+})
+
 test('a held response is shown as edited', async ($: any, on: any) => {
   const { held, pump } = engine(on)
   on('turn.step', async function* (_$: any, e: any) {
@@ -150,48 +184,38 @@ test('a held response is shown as edited', async ($: any, on: any) => {
   await ui.unmount()
 })
 
-test('re-run from here resets the conversation through the mod and sends the prompt', async ($: any, on: any) => {
+test('the filter hides kinds of events, but never the held one', async ($: any, on: any) => {
   const { held, pump } = engine(on)
-  const prompts: string[] = []
-  let compacted: any
-  // Beneath the mod: reached only when the mod's own session.compact hook did not answer.
-  on('session.compact', () => ({ skip: 'the engine was reached' }))
-  // The engine's /compact: a manual compaction over the live conversation.
-  on('command.run', { command: 'compact' }, async () => {
-    compacted = await $.session.compact({ trigger: 'manual', messages: MESSAGES })
-    return {}
-  })
-  on('prompt.submit', (_$: any, e: any) => (prompts.push(e.text), { text: e.text }))
   on('tool.call', () => ({ result: { stdout: 'ok' }, text: 'ok' }))
-  const ui = await $.ui.mount({ ...PANE, surface: 'desktop' })
+  for (const surface of ['terminal', 'desktop'] as const) {
+    const ui = await $.ui.mount({ ...PANE, surface })
+    await $.tool.call({ tool: 'Bash', command: 'ls' })
+    await ui.drawn()
+    expect(await ui.find({ type: 'Button', text: /#\d+ tool call ·/ })).toBeDefined()
 
-  await ui.press({ key: 'pause' })
-  const call = $.tool.call({ tool: 'Bash', command: 'ls' })
-  await held()
-  await ui.press({ key: 'ctx-toggle' })
-  expect(await ui.find({ type: 'Text', text: /#0 USER/ })).toBeDefined()
-  // A held event offers no re-run; one picked from the list afterwards does.
-  expect(await ui.find({ key: 'rerun-open' })).toBeUndefined()
-  await ui.press({ key: 'step' })
-  pump()
-  await held()
-  const first = await ui.find({ type: 'Button', text: /tool call/ })
-  await ui.press({ key: first.key })
-  await ui.press({ key: 'rerun-open' })
-  expect(await ui.find({ type: 'Text', text: /resets the session/ })).toBeDefined()
-  await ui.input({ key: 'rerun-prompt', text: 'go on', kind: 'change' })
-  await ui.press({ key: 'rerun-go' })
-  pump()
-  // The call had already run and was held at its result; the re-run lets the hold go.
-  await call
-  expect(await ui.find({ type: 'Text', text: /Could not re-run/ })).toBeUndefined()
-  // The kept messages are the engine's own, untouched.
-  expect(compacted.messages).toEqual(MESSAGES)
-  expect(prompts).toEqual(['go on'])
-  // The held tool call was at the point, so it is gone from the list; the re-run is noted.
-  expect(await ui.find({ type: 'Button', text: /tool call|tool result/ })).toBeUndefined()
-  expect(await ui.find({ type: 'Button', text: /re-ran from/ })).toBeDefined()
-  await ui.unmount()
+    await ui.press({ key: 'filter:tool' })
+    expect(await ui.find({ type: 'Button', text: /#\d+ tool call ·/ })).toBeUndefined()
+    expect(await ui.find({ type: 'Button', text: /#\d+ tool result ·/ })).toBeDefined()
+    await ui.press({ key: 'filter:result' })
+    expect(await ui.find({ type: 'Text', text: /events are filtered out/ })).toBeDefined()
+
+    await ui.press({ key: 'pause' })
+    const call = $.tool.call({ tool: 'Bash', command: 'pwd' })
+    await held()
+    expect(await ui.find({ type: 'Button', text: /⏸ tool call ·/ })).toBeDefined()
+    // The held event opens to the conversation the model had before it.
+    await ui.press({ key: 'ctx-toggle' })
+    expect(await ui.find({ type: 'Text', text: /#0 USER/ })).toBeDefined()
+    await ui.press({ key: 'play' })
+    pump()
+    await call
+    expect(await ui.find({ type: 'Button', text: /#\d+ tool call ·/ })).toBeUndefined()
+
+    await ui.press({ key: 'filter:tool' })
+    await ui.press({ key: 'filter:result' })
+    expect(await ui.find({ type: 'Button', text: /#\d+ tool call ·/ })).toBeDefined()
+    await ui.unmount()
+  }
 })
 
 test('a tool breakpoint stops only the picked tool, turn after turn', async ($: any, on: any) => {
@@ -200,7 +224,7 @@ test('a tool breakpoint stops only the picked tool, turn after turn', async ($: 
   on('turn.start', (_$: any, e: any) => ({ turnId: e.turnId }))
   on('turn.complete', (_$: any, e: any) => ({ text: e.answer }))
   const ui = await $.ui.mount({ ...PANE, surface: 'desktop' })
-  await ui.press({ key: 'tab-breakpoints' })
+  await ui.press({ key: 'tab:breakpoints' })
   await ui.press({ key: 'bp-tools' })
   await ui.press({ key: 'bp-tools-none' })
   await ui.press({ key: 'bp-tool-Edit' })
