@@ -8,37 +8,6 @@
   },
   "plugins": [
     {
-      "name": "agent-debugger",
-      "source": "./plugins/session/agent-debugger",
-      "description": "A step debugger for the agent loop: pause at prompts, model requests, responses, tool calls and results; inspect and edit them; play, step, stop, or re-run from an earlier event.",
-      "version": "0.1.1",
-      "category": "session",
-      "keywords": [
-        "debugger",
-        "breakpoints",
-        "step",
-        "pause",
-        "inspect",
-        "tool calls",
-        "re-run",
-        "rewind"
-      ]
-    },
-    {
-      "name": "ci-beacon",
-      "source": "./plugins/git/ci-beacon",
-      "description": "Status line with the latest GitHub Actions run for the current branch, refreshed on a timer and after each turn, with a toast when a run finishes.",
-      "version": "0.1.0",
-      "category": "git",
-      "keywords": [
-        "ci",
-        "github actions",
-        "gh",
-        "status line",
-        "workflow"
-      ]
-    },
-    {
       "name": "code-garden",
       "source": "./plugins/fun/code-garden",
       "description": "A plant in the band above the prompt that grows with every tool call and finished turn, wilts when a tool fails, and keeps growing across sessions.",
@@ -53,43 +22,17 @@
       ]
     },
     {
-      "name": "context-tide",
-      "source": "./plugins/session/context-tide",
-      "description": "Band above the prompt that shows the context window as a tide: a fill bar, the trend per turn, a sparkline of recent turns and how many turns are left before compaction.",
-      "version": "0.1.1",
-      "category": "session",
+      "name": "ci-beacon",
+      "source": "./plugins/git/ci-beacon",
+      "description": "Status line with the latest GitHub Actions run for the current branch, refreshed on a timer and after each turn, with a toast when a run finishes.",
+      "version": "0.1.0",
+      "category": "git",
       "keywords": [
-        "context window",
-        "tokens",
-        "compaction",
-        "band",
-        "usage"
-      ]
-    },
-    {
-      "name": "docker-containers",
-      "source": "./plugins/observability/docker-containers",
-      "description": "A /docker pane showing `docker ps` (ID, image, command, created, status, ports, names), refreshed every 2 seconds while open; pick the Docker context, whether to include stopped containers and the interval in the plugin's settings",
-      "version": "0.1.1",
-      "category": "observability",
-      "keywords": [
-        "docker",
-        "containers",
-        "pane"
-      ]
-    },
-    {
-      "name": "focus-timer",
-      "source": "./plugins/work/focus-timer",
-      "description": "A focus timer in the band above the prompt: /focus-timer starts a block, the band counts it down with pause, skip and stop buttons, a toast marks each switch, and every fourth break is a long one.",
-      "version": "0.2.0",
-      "category": "work",
-      "keywords": [
-        "focus",
-        "pomodoro",
-        "timer",
-        "band",
-        "productivity"
+        "ci",
+        "github actions",
+        "gh",
+        "status line",
+        "workflow"
       ]
     },
     {
@@ -109,16 +52,113 @@
       ]
     },
     {
-      "name": "modal-containers",
-      "source": "./plugins/observability/modal-containers",
-      "description": "A /modal pane listing your running Modal containers by app, with who launched each run and what it has cost. Pick the Modal environment in the plugin's settings; empty follows MODAL_ENVIRONMENT, then your modal profile (macOS/Linux)",
-      "version": "0.3.1",
+      "name": "worktree-hud",
+      "source": "./plugins/git/worktree-hud",
+      "description": "Status line with the current git worktree, branch and listening ports, and a /worktrees pane to review and clear finished worktrees.",
+      "version": "0.1.1",
+      "category": "git",
+      "keywords": [
+        "git",
+        "worktree",
+        "status line",
+        "ports",
+        "cleanup"
+      ]
+    },
+    {
+      "name": "observe",
+      "source": "./plugins/observability/observe",
+      "description": "An /observe pane with a tab per provider: Docker containers, Modal containers and their cost, and Render and Vercel deploys with the current git branch highlighted. `/observe docker|modal|render|vercel` opens it on that tab",
+      "version": "0.1.0",
       "category": "observability",
       "keywords": [
-        "modal",
+        "observability",
         "pane",
-        "integrations",
-        "cost"
+        "docker",
+        "containers",
+        "modal",
+        "cost",
+        "render",
+        "vercel",
+        "deployments"
+      ]
+    },
+    {
+      "name": "guard",
+      "source": "./plugins/safety/guard",
+      "description": "Holds destructive Bash commands until you run, block or allow them, and blocks Claude from reading secret-bearing files (.env, SSH keys, cloud credentials, your own globs).",
+      "version": "0.1.0",
+      "category": "safety",
+      "keywords": [
+        "guard",
+        "safety",
+        "guardrails",
+        "bash",
+        "rm -rf",
+        "force push",
+        "git reset",
+        "confirmation",
+        "secrets",
+        "permissions"
+      ]
+    },
+    {
+      "name": "agent-debugger",
+      "source": "./plugins/session/agent-debugger",
+      "description": "A step debugger for the agent loop: pause at prompts, model requests, responses, tool calls and results; inspect and edit them; play, step, stop, or re-run from an earlier event.",
+      "version": "0.1.1",
+      "category": "session",
+      "keywords": [
+        "debugger",
+        "breakpoints",
+        "step",
+        "pause",
+        "inspect",
+        "tool calls",
+        "re-run",
+        "rewind"
+      ]
+    },
+    {
+      "name": "context-tide",
+      "source": "./plugins/session/context-tide",
+      "description": "Band above the prompt that shows the context window as a tide: a fill bar, the trend per turn, a sparkline of recent turns and how many turns are left before compaction.",
+      "version": "0.1.1",
+      "category": "session",
+      "keywords": [
+        "context window",
+        "tokens",
+        "compaction",
+        "band",
+        "usage"
+      ]
+    },
+    {
+      "name": "trace",
+      "source": "./plugins/session/trace",
+      "description": "A /trace pane with two tabs: the skills that loaded this session (when, from where, who invoked them, how large) and the web pages Claude fetched or saw in search results, ready to insert as citations",
+      "version": "0.1.0",
+      "category": "session",
+      "keywords": [
+        "observability",
+        "skills",
+        "web",
+        "citations",
+        "pane"
+      ]
+    },
+    {
+      "name": "focus-timer",
+      "source": "./plugins/work/focus-timer",
+      "description": "A focus timer in the band above the prompt: /focus-timer starts a block, the band counts it down with pause, skip and stop buttons, a toast marks each switch, and every fourth break is a long one.",
+      "version": "0.2.0",
+      "category": "work",
+      "keywords": [
+        "focus",
+        "pomodoro",
+        "timer",
+        "band",
+        "productivity"
       ]
     },
     {
@@ -135,100 +175,6 @@
         "linear",
         "jira",
         "monday"
-      ]
-    },
-    {
-      "name": "render-deploys",
-      "source": "./plugins/observability/render-deploys",
-      "description": "A /render-deploys pane of your recent Render deploys: state, service, environment, branch, commit, trigger, age and link, with the current git branch highlighted",
-      "version": "0.1.1",
-      "category": "observability",
-      "keywords": [
-        "pane",
-        "integrations",
-        "deployments",
-        "render"
-      ]
-    },
-    {
-      "name": "sensitive-paths",
-      "source": "./plugins/safety/sensitive-paths",
-      "description": "Blocks Claude from reading secret-bearing files (.env, SSH keys, cloud credentials, and your own globs) through Read, Glob, Grep and, best effort, Bash; writing them is left alone",
-      "version": "0.1.0",
-      "category": "safety",
-      "keywords": [
-        "safety",
-        "guardrails",
-        "secrets",
-        "permissions"
-      ]
-    },
-    {
-      "name": "skill-trace",
-      "source": "./plugins/session/skill-trace",
-      "description": "A /skill-trace pane showing which skills loaded in this session, when, from which plugin, whether the model or you invoked them, and how large their instructions were",
-      "version": "0.1.1",
-      "category": "session",
-      "keywords": [
-        "observability",
-        "skills",
-        "pane"
-      ]
-    },
-    {
-      "name": "sources",
-      "source": "./plugins/session/sources",
-      "description": "A /sources pane listing every web page Claude fetched or saw in search results this session, deduplicated by URL, with a button that inserts them as citations into your prompt",
-      "version": "0.1.0",
-      "category": "session",
-      "keywords": [
-        "observability",
-        "web",
-        "citations",
-        "pane"
-      ]
-    },
-    {
-      "name": "tripwire",
-      "source": "./plugins/safety/tripwire",
-      "description": "Holds a destructive Bash command before it runs, shows what it would destroy, and waits for you to run it once, block it, or allow its rule for the session.",
-      "version": "0.1.0",
-      "category": "safety",
-      "keywords": [
-        "guard",
-        "safety",
-        "bash",
-        "rm -rf",
-        "force push",
-        "git reset",
-        "confirmation"
-      ]
-    },
-    {
-      "name": "vercel-deploys",
-      "source": "./plugins/observability/vercel-deploys",
-      "description": "A /vercel-deploys pane of your recent Vercel deployments: state, environment, branch, commit, creator, age and URL, with the current git branch highlighted",
-      "version": "0.1.1",
-      "category": "observability",
-      "keywords": [
-        "pane",
-        "integrations",
-        "deployments",
-        "vercel"
-      ]
-    },
-    {
-      "name": "worktree-hud",
-      "source": "./plugins/git/worktree-hud",
-      "description": "Status line with the current git worktree, branch and listening ports, and a /worktrees pane to review and clear finished worktrees.",
-      "version": "0.1.1",
-      "category": "git",
-      "keywords": [
-        "git",
-        "worktree",
-        "status line",
-        "ports",
-        "cleanup"
       ]
     }
   ]
