@@ -3,7 +3,7 @@
 import type { ElementTable } from 'claude-code'
 
 import type { DebugEvent, DebugSettings, Hold, Kind, Usage } from '../types'
-import { EFFORTS, KINDS, KIND_LABEL, LIST_STEP, clean, clip, dbg, flip, seconds } from './state'
+import { BREAK_KINDS, EFFORTS, KINDS, KIND_LABEL, LIST_STEP, clean, clip, dbg, flip, seconds, tokens } from './state'
 import type { Control, Tab } from './state'
 
 const CONTEXT_MAX = 300
@@ -300,6 +300,20 @@ function fieldsOf(ev: DebugEvent): Field[] {
       const d = ev.detail
       return [['ended', d.reason], ['took', seconds(d.durationMs)], ['tokens', usageText(d.usage)]]
     }
+    case 'skill': {
+      const d = ev.detail
+      return [['skill', d.skill], ['size', tokens(d.chars)]]
+    }
+    case 'source': {
+      const d = ev.detail
+      return [
+        ['tool', d.tool],
+        ...when(d.url, 'url', () => d.url!),
+        ...when(d.query, 'query', () => d.query!),
+        ...when(d.results, 'results', () => String(d.results)),
+        ['status', d.ok ? 'ok' : 'failed'],
+      ]
+    }
   }
 }
 
@@ -364,6 +378,7 @@ function drawEditors(t: UI, held: Hold, io: Controls) {
     case 'turn-end':
       return fieldsOf(ev).map(f => field(t, f))
   }
+  return fieldsOf(ev).map(f => field(t, f)) // the observed kinds are never held
 }
 
 function drawBreakpoints(t: UI, s: DebugSettings, io: Controls) {
@@ -375,7 +390,7 @@ function drawBreakpoints(t: UI, s: DebugSettings, io: Controls) {
         Play runs until a checked event. Pause and Step stop at every event of the current turn, checked or not; when the turn ends, only the checked events stop again.
       </Text>
       <Box flexDirection="column">
-        {KINDS.map(kind => row(`bp-${kind}`, check(s.breaks.includes(kind), KIND_LABEL[kind]), () => io.set(x => ({ ...x, breaks: flip(x.breaks, kind) }))))}
+        {BREAK_KINDS.map(kind => row(`bp-${kind}`, check(s.breaks.includes(kind), KIND_LABEL[kind]), () => io.set(x => ({ ...x, breaks: flip(x.breaks, kind) }))))}
       </Box>
       <Box flexDirection="column">
         {row(

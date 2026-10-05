@@ -1,4 +1,6 @@
-export type Kind = 'prompt' | 'request' | 'response' | 'tool' | 'result' | 'turn-end'
+export type BreakKind = 'prompt' | 'request' | 'response' | 'tool' | 'result' | 'turn-end'
+// Observed only: recorded and filtered, never held.
+export type Kind = BreakKind | 'skill' | 'source'
 
 export type Effort = 'low' | 'medium' | 'high' | 'xhigh' | 'max' | number
 
@@ -20,6 +22,8 @@ export type Details = {
   tool: { tool: string; args: Record<string, unknown>; editedArgs?: Record<string, unknown> }
   result: { tool: string; isError: boolean; text: string; editedText?: string }
   'turn-end': { reason: string; durationMs: number; usage: Usage }
+  skill: { skill: string; chars: number }
+  source: { tool: string; url?: string; query?: string; results?: number; ok: boolean }
 }
 
 export type EventOf<K extends Kind> = {
@@ -46,7 +50,7 @@ export type Edit =
 export type Hold<E extends Edit = Edit> = { ev: DebugEvent; edit: E; decision: Decision | null }
 
 export type DebugSettings = {
-  breaks: Kind[] // the events Play stops on
+  breaks: BreakKind[] // the events Play stops on
   // Tool breakpoints: `tools` less `toolsOff`; `otherTools` speaks for the unlisted (MCP) ones.
   tools: string[]
   toolsOff: string[]

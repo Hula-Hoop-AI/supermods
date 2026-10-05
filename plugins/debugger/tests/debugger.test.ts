@@ -248,3 +248,29 @@ test('a tool breakpoint stops only the picked tool, turn after turn', async ($: 
 
   await ui.unmount()
 })
+
+test('skill loads and web sources are listed, filtered, and never held', async ($: any, on: any) => {
+  const { held, pump } = engine(on)
+  on('tool.call', () => ({ result: { results: [{ content: [{ url: 'https://a.test' }, { url: 'https://b.test' }] }] }, text: 'ok' }))
+  on('skill.prompt', (_$: any, e: any) => ({ text: `${e.skill} instructions` }))
+  const ui = await $.ui.mount({ ...PANE, surface: 'desktop' })
+  await ui.press({ key: 'pause' })
+  const search = $.tool.call({ tool: 'WebSearch', query: 'claude mods' })
+  await held()
+  await ui.press({ key: 'play' })
+  pump()
+  await search
+  await $.skill.prompt({ skill: 'commit', text: 'x' })
+  await ui.drawn()
+  expect(await ui.find({ type: 'Button', text: /web source · search “claude mods” → 2 results/ })).toBeDefined()
+  expect(await ui.find({ type: 'Button', text: /skill load · commit ~\d+ tok/ })).toBeDefined()
+
+  await ui.press({ key: 'filter' })
+  await ui.press({ key: 'filter:skill' })
+  await ui.press({ key: 'filter:source' })
+  expect(await ui.find({ type: 'Button', text: /web source ·/ })).toBeUndefined()
+  expect(await ui.find({ type: 'Button', text: /skill load ·/ })).toBeUndefined()
+  await ui.press({ key: 'tab:breakpoints' })
+  expect(await ui.find({ type: 'Button', text: /skill loads?$/ })).toBeUndefined()
+  await ui.unmount()
+})

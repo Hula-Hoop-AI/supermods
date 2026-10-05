@@ -7,16 +7,19 @@
 //   tool      tool.call       before a tool runs; arguments are editable, or the call is skipped
 //   result    tool.call       after a tool ran; the text the model will read is editable
 //   turn-end  turn.complete   before the turn is reported done
+// Observed only (listed and filtered, never held):
+//   skill     skill.prompt    a skill's instructions entering the conversation
+//   source    tool.call       a WebFetch or WebSearch, once it has run
 //
 // Holding: a hook has 10 s of its own time, but time inside a `$` call is free, so a hold
 // waits on short `$.process.run(["sleep", ...])` calls until a control sets its decision.
 import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register, RenderSurface, ToolCallInput, TurnStepInput } from 'claude-code'
 
-import type { DebugEvent, DebugSettings, Edit, Effort, EventOf, Hold, Kind } from '../types'
+import type { BreakKind, DebugEvent, DebugSettings, Edit, Effort, EventOf, Hold } from '../types'
 import { drawBand, drawPane } from './pane'
 import type { Controls } from './pane'
-import { CONTROLS, EFFORTS, clip, dbg, isStopped, pauses, record, seconds } from './state'
+import { CONTROLS, EFFORTS, clip, dbg, isStopped, pauses, record, seconds, tokens } from './state'
 import type { Control } from './state'
 
 const PANE = 'debugger'
@@ -52,7 +55,7 @@ async function change($: EngineInterface, fn: (s: DebugSettings) => DebugSetting
   }
 }
 
-const shouldPause = async ($: EngineInterface, kind: Kind, agentId?: string, tool?: string) =>
+const shouldPause = async ($: EngineInterface, kind: BreakKind, agentId?: string, tool?: string) =>
   pauses(await current($), kind, agentId, tool)
 
 /** Holds the calling hook until a control answers; resolves the hold with its `decision` and `edit`. */
@@ -195,6 +198,27 @@ function parsedEdits(args: Record<string, unknown>, edited: Record<string, strin
   return out
 }
 
+/** A web source from a WebFetch or WebSearch call, once it has run. */
+function recordSource(tool: string, args: Record<string, unknown>, ran: { deny?: string; isError?: boolean; result?: unknown }, agentId?: string) {
+  const ok = ran.deny === undefined && ran.isError !== true
+  if (tool === 'WebSearch') {
+    const query = typeof args.query === 'string' ? args.query : ''
+    if (!query) return
+    const results = searchHits(ran.result)
+    record('source', `search “${clip(query, 50)}” → ${results} results`, { tool, query, results, ok }, agentId)
+  } else {
+    const url = typeof args.url === 'string' ? args.url : ''
+    if (!url) return
+    record('source', `fetch ${clip(url, 70)}${ok ? '' : ' failed'}`, { tool, url, ok }, agentId)
+  }
+}
+
+function searchHits(result: unknown) {
+  const results = result && typeof result === 'object' ? (result as { results?: unknown }).results : undefined
+  if (!Array.isArray(results)) return 0
+  return results.reduce<number>((n, block) => n + (Array.isArray((block as { content?: unknown })?.content) ? (block as { content: unknown[] }).content.length : 0), 0)
+}
+
 function describeResponse(result: { answer: string; toolUses: readonly { name: string }[]; stopReason: string | null }) {
   const tools = result.toolUses.map(use => use.name).join(', ')
   return [clip(result.answer, 50), tools && `→ ${tools}`, result.stopReason && `(${result.stopReason})`].filter(Boolean).join(' ') || '(empty)'
@@ -322,8 +346,16 @@ export const register: Register = on => {
         resultOverrides.set(id, h.edit.text)
       }
     }
+    if (tool === 'WebFetch' || tool === 'WebSearch') recordSource(toolName, args, ran, agentId)
     $.ui.invalidate('ui.render')
     return ran
+  })
+
+  on('skill.prompt', async ($, e, next) => {
+    const r = await next(e)
+    record('skill', `${e.skill} ${tokens(r.text.length)}`, { skill: e.skill, chars: r.text.length })
+    $.ui.invalidate('ui.render')
+    return r
   })
 
   // An edited tool result is rewritten where the row is stored, so the model reads the edit.

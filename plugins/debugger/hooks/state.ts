@@ -1,12 +1,13 @@
 // The debugger's events and holds, and what the pane has open. Module state: a hold is a live
 // hook waiting on its `decision`, so none of it outlives a reload. Breakpoints and the filter do,
 // in the `settings` atom of register.tsx.
-import type { DebugEvent, DebugSettings, Details, EventOf, Hold, Kind } from '../types'
+import type { BreakKind, DebugEvent, DebugSettings, Details, EventOf, Hold, Kind } from '../types'
 
 const MAX_EVENTS = 300
 export const LIST_STEP = 40
 
-export const KINDS: Kind[] = ['prompt', 'request', 'response', 'tool', 'result', 'turn-end']
+export const BREAK_KINDS: BreakKind[] = ['prompt', 'request', 'response', 'tool', 'result', 'turn-end']
+export const KINDS: Kind[] = [...BREAK_KINDS, 'skill', 'source']
 export const KIND_LABEL: Record<Kind, string> = {
   prompt: 'prompt',
   request: 'model request',
@@ -14,6 +15,8 @@ export const KIND_LABEL: Record<Kind, string> = {
   tool: 'tool call',
   result: 'tool result',
   'turn-end': 'turn end',
+  skill: 'skill load',
+  source: 'web source',
 }
 export const EFFORTS = ['low', 'medium', 'high', 'xhigh', 'max'] as const
 export const CONTROLS = ['play', 'pause', 'step', 'stop'] as const
@@ -60,6 +63,9 @@ export function clip(text: unknown, max: number) {
 
 export const seconds = (ms: number) => `${Math.round(ms / 100) / 10}s`
 
+/** A rough size for text the model reads, at four characters a token. */
+export const tokens = (chars: number) => (chars >= 4000 ? `~${(chars / 4000).toFixed(1)}k tok` : `~${Math.round(chars / 4)} tok`)
+
 export const flip = <T>(list: T[], item: T) => (list.includes(item) ? list.filter(x => x !== item) : [...list, item])
 
 export function record<K extends Kind>(kind: K, label: string, detail: Details[K], agentId?: string): EventOf<K> {
@@ -79,7 +85,7 @@ export function record<K extends Kind>(kind: K, label: string, detail: Details[K
 
 export const isStopped = (h: Hold) => h.decision === 'stop' || h.decision === 'aborted'
 
-export function pauses(s: DebugSettings, kind: Kind, agentId?: string, tool?: string) {
+export function pauses(s: DebugSettings, kind: BreakKind, agentId?: string, tool?: string) {
   if (agentId !== undefined && !s.includeAgents) return false
   if (dbg.mode === 'step') return true
   if (!s.breaks.includes(kind)) return false

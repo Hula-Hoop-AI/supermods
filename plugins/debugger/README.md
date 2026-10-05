@@ -25,7 +25,9 @@ works while a turn is running.
 
 The **events** tab lists the session's events, newest first. The **show** dropdown above the
 list filters it: a checkbox per kind of event with its count, and one for subagents' events once
-there are any. An
+there are any; two kinds are observed only, never held: **skill loads** (a skill's instructions
+entering the conversation, with their size) and **web sources** (each WebFetch URL and WebSearch
+query, once it has run). An
 unchecked kind is still recorded and still stops on its breakpoint, and the held event always
 shows. An event opens in place to its fields and to the conversation the model had before it.
 While an event is held, its fields are inputs:
