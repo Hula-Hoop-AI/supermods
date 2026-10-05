@@ -1,6 +1,6 @@
 {
   "name": "render-deploys",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A /render-deploys pane of your recent Render deploys: state, service, environment, branch, commit, trigger, age and link, with the current git branch highlighted",
   "author": { "name": "Ariel Porath" },
   "license": "MIT",

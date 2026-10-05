@@ -26,7 +26,7 @@ function engine(on: any) {
 }
 
 const start = ($: any) => $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' });
-const focus = ($: any, args = '') => $.command.run({ command: 'focus', args });
+const focus = ($: any, args = '') => $.command.run({ command: 'focus-timer', args });
 const turn = ($: any, agentId?: string) => $.turn.complete({ turnId: 't', answer: '', durationMs: 1, isAborted: false, reason: 'answer', agentId });
 
 test('the pure parts: clock, bar, phases and the description', () => {
@@ -45,7 +45,7 @@ test('the pure parts: clock, bar, phases and the description', () => {
   expect(describeBlock({ ...first, pausedLeftMs: 5000 }, 0)).toBe('focus, paused 00:05 · round 1 · 2 turns');
 });
 
-test('/focus starts a block the band counts down on each surface, and the phases switch with a toast', async ($: any, on: any) => {
+test('/focus-timer starts a block the band counts down on each surface, and the phases switch with a toast', async ($: any, on: any) => {
   const { clock, toasts } = engine(on);
   await start($);
   const quiet = await $.ui.mount({ ...BAND, surface: 'terminal' });
@@ -74,25 +74,25 @@ test('pause holds the clock, skip ends the phase early, stop removes the band', 
   await start($);
   await focus($, '10');
   const ui = await $.ui.mount({ ...BAND, surface: 'terminal' });
-  await ui.press({ key: 'pause' });
+  await ui.press({ key: 'focus-pause' });
   await clock.advance(5 * MINUTE);
   expect(await ui.find({ type: 'Text', text: 'focus, paused 10:00 · round 1 · 0 turns' })).toBeDefined();
   expect(await ui.find({ type: 'Button', text: 'Resume' })).toBeDefined();
-  await ui.press({ key: 'pause' });
+  await ui.press({ key: 'focus-pause' });
   await clock.advance(1 * MINUTE);
   expect(await ui.find({ type: 'Text', text: 'focus 09:00 · round 1 · 0 turns' })).toBeDefined();
-  await ui.press({ key: 'skip' });
+  await ui.press({ key: 'focus-skip' });
   expect(toasts).toEqual(['Focus block 1 done. Break for 10 min.']);
-  await ui.press({ key: 'stop' });
+  await ui.press({ key: 'focus-stop' });
   expect(await ui.find({ type: 'Text', text: 'engine' })).toBeDefined();
   expect((await focus($, 'stop')).text).toBe('No focus timer is running.');
 });
 
-test('/focus pause and /focus stop, and a bad argument', async ($: any, on: any) => {
+test('/focus-timer pause and /focus-timer stop, and a bad argument', async ($: any, on: any) => {
   const { clock } = engine(on);
   await start($);
   expect((await focus($, 'pause')).text).toContain('No focus timer');
-  expect((await focus($, 'soon')).text).toBe('Usage: /focus [minutes, up to 180] | pause | stop');
+  expect((await focus($, 'soon')).text).toBe('Usage: /focus-timer [minutes, up to 180] | pause | stop');
   expect((await focus($, 'Infinity')).text).toContain('Usage');
   expect((await focus($, '500')).text).toContain('Usage');
   await focus($, '2');

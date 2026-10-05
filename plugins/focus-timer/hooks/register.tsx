@@ -3,7 +3,8 @@ import type { EngineInterface, Register } from 'claude-code';
 
 import type { FocusBlock, FocusPhase } from '../types';
 
-const COMMAND = 'focus';
+// Not 'focus': the engine has a built-in /focus and refuses the name.
+const COMMAND = 'focus-timer';
 const TICK_MS = 1000;
 const BAR_CELLS = 16;
 const ROUNDS_PER_LONG_BREAK = 4;
@@ -95,7 +96,7 @@ export const register: Register = (on, options) => {
   on('session.start', async ($, e, next) => {
     await $.command.register({
       name: COMMAND,
-      description: 'Start a focus block (/focus [minutes]); /focus pause, /focus stop',
+      description: `Start a focus block (/${COMMAND} [minutes]); /${COMMAND} pause, /${COMMAND} stop`,
     });
     // A reload keeps the block in state but drops the old module's timer.
     const current = await read($, block);
@@ -118,12 +119,12 @@ export const register: Register = (on, options) => {
       return { text: current === null ? 'No focus timer is running.' : `Focus timer stopped after ${plural(current.rounds, 'finished block')}.` };
     }
     if (word === 'pause') {
-      if (current === null) return { text: 'No focus timer is running. /focus starts one.' };
+      if (current === null) return { text: `No focus timer is running. /${COMMAND} starts one.` };
       await togglePause($, settings);
       return { text: current.pausedLeftMs === null ? 'Focus timer paused.' : 'Focus timer resumed.' };
     }
     const asked = Number(word);
-    if (word !== '' && !(Number.isFinite(asked) && asked > 0 && asked <= MAX_MINUTES)) return { text: `Usage: /focus [minutes, up to ${MAX_MINUTES}] | pause | stop` };
+    if (word !== '' && !(Number.isFinite(asked) && asked > 0 && asked <= MAX_MINUTES)) return { text: `Usage: /${COMMAND} [minutes, up to ${MAX_MINUTES}] | pause | stop` };
     const lengthMs = word === '' ? settings.focusMs : asked * MINUTE_MS;
     const started = startBlock('focus', await $.clock.now(), lengthMs, current?.rounds ?? 0);
     await update($, block, () => started);
@@ -139,18 +140,21 @@ export const register: Register = (on, options) => {
     const { Box, Button, Text } = $.ui.resolve(e);
     const cells = Math.max(4, Math.min(BAR_CELLS, Math.floor(e.props.bodyColumns / 5)));
 
-    return (
+    const below = await next(e);
+    const row = (
       <Box>
         <Text color={COLORS[current.phase]} dimColor={current.pausedLeftMs !== null}>
           ⏱ {bar(leftMs(current, now), current.lengthMs, cells)}{' '}
         </Text>
         <Text wrap="truncate-end">{describe(current, now)} </Text>
-        <Button key="pause" label={current.pausedLeftMs === null ? 'Pause' : 'Resume'} hotkey="p" plain dimColor onPress={() => togglePause($, settings)} />
+        <Button key="focus-pause" label={current.pausedLeftMs === null ? 'Pause' : 'Resume'} hotkey="p" plain dimColor onPress={() => togglePause($, settings)} />
         <Text> </Text>
-        <Button key="skip" label="Skip" hotkey="s" plain dimColor onPress={() => switchPhase($, settings)} />
+        <Button key="focus-skip" label="Skip" hotkey="s" plain dimColor onPress={() => switchPhase($, settings)} />
         <Text> </Text>
-        <Button key="stop" label="Stop" hotkey="x" plain dimColor onPress={() => update($, block, () => null)} />
+        <Button key="focus-stop" label="Stop" hotkey="x" plain dimColor onPress={() => update($, block, () => null)} />
       </Box>
     );
+
+    return below ? <Box flexDirection="column">{row}{below}</Box> : row;
   });
 };

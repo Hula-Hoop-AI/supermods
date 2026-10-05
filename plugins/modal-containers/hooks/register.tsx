@@ -109,6 +109,10 @@ function money(dollars: number | undefined): string {
   return dollars < 0.01 ? '<$0.01' : `$${dollars.toFixed(2)}`
 }
 
+function notPlaced(what: string, reason: string) {
+  return `${what} is open, but this surface is not showing it: ${reason}`
+}
+
 export const register: Register = (on, options) => {
   configuredEnv = String(options.environment ?? '').trim()
 
@@ -124,9 +128,9 @@ export const register: Register = (on, options) => {
   })
 
   on('command.run', { command: 'modal' }, async $ => {
-    await $.ui.open({ id: PANE, title: 'Modal' })
+    const opened = await $.ui.open({ id: PANE, title: 'Modal' })
     startPolling($)
-    return { text: 'Modal containers pane opened (refreshes every 20s).' }
+    return { text: opened.isPlaced ? 'Modal containers pane opened (refreshes every 20s).' : notPlaced('The Modal containers pane', opened.reason) }
   })
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {

@@ -1,6 +1,6 @@
 {
   "name": "skill-trace",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A /skill-trace pane showing which skills loaded in this session, when, from which plugin, whether the model or you invoked them, and how large their instructions were",
   "author": { "name": "Ariel Porath" },
   "license": "MIT",

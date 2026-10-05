@@ -1,6 +1,6 @@
 {
   "name": "my-issues",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A /issues pane of the open issues assigned to you across GitHub, Linear, Jira and monday.com; press an issue to put its key, title and link in your prompt",
   "author": { "name": "Ariel Porath" },
   "license": "MIT",

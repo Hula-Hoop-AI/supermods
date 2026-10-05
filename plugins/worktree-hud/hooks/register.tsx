@@ -192,6 +192,10 @@ async function refreshStatus($: EngineInterface): Promise<void> {
   $.ui.status([baseName(root), branch || 'detached', portList(ports)].filter(Boolean).join(' · '));
 }
 
+function notPlaced(what: string, reason: string) {
+  return `${what} is open, but this surface is not showing it: ${reason}`;
+}
+
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     await $.command.register({
@@ -210,11 +214,11 @@ export const register: Register = on => {
   });
 
   on('command.run', { command: 'worktrees' }, async $ => {
-    await $.ui.open({ id: PANE, title: 'Worktrees' });
+    const opened = await $.ui.open({ id: PANE, title: 'Worktrees' });
     const scanned = await scanWorktrees($);
     await update($, scan, () => scanned);
 
-    return { text: 'Worktrees pane opened.' };
+    return { text: opened.isPlaced ? 'Worktrees pane opened.' : notPlaced('The Worktrees pane', opened.reason) };
   });
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {

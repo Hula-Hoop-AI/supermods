@@ -95,13 +95,16 @@ export const register: Register = (on, options) => {
     const { color } = phaseOf(percent, compactAt);
     const cells = Math.max(4, Math.min(BAR_CELLS, Math.floor(e.props.bodyColumns / 5)));
 
-    return (
+    const below = await next(e);
+    const row = (
       <Box>
         <Text color={color}>≈ {bar(percent, cells)} </Text>
         <Text dimColor>{sparkline(percents)} </Text>
         <Text wrap="truncate-end">{describe(percents, compactAt)} </Text>
-        <Button key="hide" label="Hide" hotkey="h" plain dimColor onPress={() => update($, isHidden, () => true)} />
+        <Button key="tide-hide" label="Hide" hotkey="t" plain dimColor onPress={() => update($, isHidden, () => true)} />
       </Box>
     );
+
+    return below ? <Box flexDirection="column">{row}{below}</Box> : row;
   });
 };

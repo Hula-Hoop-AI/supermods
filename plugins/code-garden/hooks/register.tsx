@@ -106,14 +106,17 @@ export const register: Register = (on, options) => {
     const { Box, Button, Text } = $.ui.resolve(e);
     const { glyph, text } = describe(state, stagePoints);
 
-    return (
+    const below = await next(e);
+    const row = (
       <Box>
         <Text>{glyph} </Text>
         <Text color={state.isWilted ? 'yellow' : 'green'} dimColor={state.isWilted} wrap="truncate-end">
           {text}{' '}
         </Text>
-        <Button key="hide" label="Hide" hotkey="h" plain dimColor onPress={() => update($, isHidden, () => true)} />
+        <Button key="garden-hide" label="Hide" hotkey="g" plain dimColor onPress={() => update($, isHidden, () => true)} />
       </Box>
     );
+
+    return below ? <Box flexDirection="column">{row}{below}</Box> : row;
   });
 };

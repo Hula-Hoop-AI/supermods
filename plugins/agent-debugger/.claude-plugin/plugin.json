@@ -1,6 +1,6 @@
 {
   "name": "agent-debugger",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A step debugger for the agent loop: pause at prompts, model requests, responses, tool calls and results; inspect and edit them; play, step, stop, or re-run from an earlier event.",
   "author": {
     "name": "nadav-grs"

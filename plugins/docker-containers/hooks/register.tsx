@@ -62,6 +62,10 @@ function clampNumber(v: unknown, fallback: number, min: number, max: number) {
   return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback
 }
 
+function notPlaced(what: string, reason: string) {
+  return `${what} is open, but this surface is not showing it: ${reason}`
+}
+
 export const register: Register = (on, options) => {
   context = String(options.context ?? '').trim()
   all = options.all === true
@@ -79,9 +83,9 @@ export const register: Register = (on, options) => {
   })
 
   on('command.run', { command: 'docker' }, async $ => {
-    await $.ui.open({ id: PANE, title: 'docker ps' })
+    const opened = await $.ui.open({ id: PANE, title: 'docker ps' })
     startPolling($)
-    return { text: `docker ps pane opened (refreshes every ${refreshMs / 1000}s).` }
+    return { text: opened.isPlaced ? `docker ps pane opened (refreshes every ${refreshMs / 1000}s).` : notPlaced('The docker ps pane', opened.reason) }
   })
 
   on('ui.close', { id: PANE }, async ($, e, next) => {

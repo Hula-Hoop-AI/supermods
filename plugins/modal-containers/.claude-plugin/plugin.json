@@ -1,6 +1,6 @@
 {
   "name": "modal-containers",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "A /modal pane listing your running Modal containers by app, with who launched each run and what it has cost. Pick the Modal environment in the plugin's settings; empty follows MODAL_ENVIRONMENT, then your modal profile (macOS/Linux)",
   "author": { "name": "Ariel Porath" },
   "license": "MIT",

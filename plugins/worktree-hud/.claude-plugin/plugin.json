@@ -1,6 +1,6 @@
 {
   "name": "worktree-hud",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Status line with the current git worktree, branch and listening ports, and a /worktrees pane to review and clear finished worktrees.",
   "types": "./types/index.d.ts",
   "author": {

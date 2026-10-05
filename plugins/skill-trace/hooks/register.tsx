@@ -120,6 +120,10 @@ function outcome(r: ToolCallResult): { mode?: 'inline' | 'forked'; failed?: stri
   return { mode }
 }
 
+function notPlaced(what: string, reason: string) {
+  return `${what} is open, but this surface is not showing it: ${reason}`
+}
+
 export const register: Register = (on, options) => {
   const max = Number(options.maxEntries)
   maxEntries = Number.isFinite(max) ? Math.min(MAX_ENTRIES_CAP, Math.max(1, Math.floor(max))) : DEFAULT_MAX_ENTRIES
@@ -157,9 +161,10 @@ export const register: Register = (on, options) => {
   // command (built-ins, other mods' commands) passes by unrecorded.
   on('command.run', async ($, e, next) => {
     if (e.command === 'skill-trace') {
-      await $.ui.open({ id: PANE, title: 'Skill trace' })
+      const opened = await $.ui.open({ id: PANE, title: 'Skill trace' })
       const t = await read($, trace)
-      return { text: `Skill trace pane opened: ${t.total} skill load${t.total === 1 ? '' : 's'} this session.` }
+      const loads = `${t.total} skill load${t.total === 1 ? '' : 's'} this session.`
+      return { text: opened.isPlaced ? `Skill trace pane opened: ${loads}` : `${notPlaced('The Skill trace pane', opened.reason)}\n${loads}` }
     }
     const source = await listedSource($, e.command)
     if (source === undefined) return next(e)

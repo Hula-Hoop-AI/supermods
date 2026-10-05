@@ -1,6 +1,6 @@
 {
   "name": "vercel-deploys",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A /vercel-deploys pane of your recent Vercel deployments: state, environment, branch, commit, creator, age and URL, with the current git branch highlighted",
   "author": { "name": "Ariel Porath" },
   "license": "MIT",

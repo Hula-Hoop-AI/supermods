@@ -199,3 +199,13 @@ for (const surface of ['terminal', 'desktop'] as const) {
     expect(copied).toEqual(['webapp-db-1'])
   })
 }
+
+test('/docker says so when the surface does not show the pane', async ($, on) => {
+  const clock = mock.clock(on)
+  fakeDocker(on, OK)
+  on('ui.open', async () => ({ value: { isPlaced: false as const, reason: 'this desktop places no panes' } }))
+  on('ui.panes', async () => ({ value: [] }) as never)
+  const out = await $.command.run({ command: 'docker', args: '' } as never)
+  await clock.settle()
+  expect(out.text).toBe('The docker ps pane is open, but this surface is not showing it: this desktop places no panes')
+})

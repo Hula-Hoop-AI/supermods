@@ -21,7 +21,7 @@ at or past the threshold, where compaction is near). Crossing into flood shows o
 ## Use
 
 The band appears after the first model response of the session and updates after each turn.
-`/tide`, or the band's **Hide** button (`h` while the band has focus), hides it; `/tide` again
+`/tide`, or the band's **Hide** button (`t` while the band has focus), hides it; `/tide` again
 shows it.
 
 ## Configuration

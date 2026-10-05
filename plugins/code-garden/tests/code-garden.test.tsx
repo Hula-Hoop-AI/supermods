@@ -9,14 +9,14 @@ const BAND = {
 } as const;
 
 // Stands for the engine: tool calls succeed unless `failing`, the store starts from `saved`, toasts are collected.
-function engine(on: any, saved: Record<string, unknown> = {}) {
+function engine(on: any, saved: Record<string, unknown> = {}, beneath: unknown = { type: 'Text', props: {}, children: ['engine'] }) {
   const now = { failing: false, toasts: [] as string[] };
   mock.store(on, saved);
   on('tool.call', () => (now.failing ? { result: 'boom', isError: true, text: 'boom' } : { result: 'ok' }));
   on('turn.complete', () => ({ text: '' }));
   on('session.start', () => ({ cwd: '/work' }));
   on('command.register', () => ({ value: undefined }));
-  on('ui.render', () => ({ type: 'Text', props: {}, children: ['engine'] }));
+  on('ui.render', () => beneath);
   on('ui.toast', ($: any, e: any) => {
     now.toasts.push(e.text);
     return { value: undefined };
@@ -87,9 +87,19 @@ test('the garden is saved after each change and loaded at session start', async 
 test('/garden reports and toggles, as the Hide button does', async ($: any, on: any) => {
   engine(on);
   const ui = await $.ui.mount({ ...BAND, surface: 'terminal' });
-  await ui.press({ key: 'hide' });
+  await ui.press({ key: 'garden-hide' });
   expect(await ui.find({ type: 'Text', text: 'engine' })).toBeDefined();
   expect((await $.command.run({ command: 'garden', args: '' })).text).toBe('🫘 seed · 0 pts · 25 to sprout · 0 turns. Garden shown.');
   expect(await ui.find({ type: 'Text', text: /seed/ })).toBeDefined();
   expect((await $.command.run({ command: 'garden', args: '' })).text).toContain('Garden hidden');
+});
+
+test('the garden stacks over another mod\'s band instead of replacing it', async ($: any, on: any) => {
+  engine(on, {}, { type: 'Text', props: {}, children: ['beneath'] });
+  for (const surface of ['terminal', 'desktop'] as const) {
+    const ui = await $.ui.mount({ ...BAND, surface });
+    expect(await ui.find({ type: 'Text', text: /seed/ })).toBeDefined();
+    expect(await ui.find({ type: 'Text', text: 'beneath' })).toBeDefined();
+    await ui.unmount();
+  }
 });

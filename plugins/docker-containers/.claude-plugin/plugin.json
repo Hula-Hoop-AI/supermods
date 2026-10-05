@@ -1,6 +1,6 @@
 {
   "name": "docker-containers",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A /docker pane showing `docker ps` (ID, image, command, created, status, ports, names), refreshed every 2 seconds while open; pick the Docker context, whether to include stopped containers and the interval in the plugin's settings",
   "author": { "name": "Ariel Porath" },
   "license": "MIT",

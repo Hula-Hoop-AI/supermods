@@ -1,6 +1,6 @@
 {
   "name": "focus-timer",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A focus timer in the band above the prompt: /focus starts a block, the band counts it down with pause, skip and stop buttons, a toast marks each switch, and every fourth break is a long one.",
   "types": "./types/index.d.ts",
   "author": {

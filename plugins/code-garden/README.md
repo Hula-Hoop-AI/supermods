@@ -22,7 +22,7 @@ Wilted, the plant is drawn 🥀 in yellow.
 ## Use
 
 The band is on from the first turn. `/garden` reports the plant's stage, points and turns, and
-hides the band; `/garden` again shows it. The band's **Hide** button (`h` while the band has
+hides the band; `/garden` again shows it. The band's **Hide** button (`g` while the band has
 focus) hides it too.
 
 ## Configuration

@@ -298,11 +298,14 @@ export function register(on) {
 
   on("ui.render", { component: "Pane", requestId: PANE }, ($, e) => drawPane($, $.ui.resolve(e)));
 
-  on("ui.render", { component: "AbovePrompt" }, ($, e, next) => {
+  on("ui.render", { component: "AbovePrompt" }, async ($, e, next) => {
     if (holds.length === 0 || e.props?.hasSurvey) {
       return next(e);
     }
-    return drawBand($, $.ui.resolve(e));
+    const t = $.ui.resolve(e);
+    const below = await next(e);
+    const row = drawBand($, t);
+    return below ? t.Box({ flexDirection: "column", children: [row, below] }) : row;
   });
 }
 

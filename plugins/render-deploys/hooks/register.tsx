@@ -230,6 +230,10 @@ export function age(createdAt: number, now: number): string {
 
 const truncate = (s: string, n: number) => (s.length > n ? `${s.slice(0, n - 1)}…` : s)
 
+function notPlaced(what: string, reason: string) {
+  return `${what} is open, but this surface is not showing it: ${reason}`
+}
+
 export const register: Register = (on, options) => {
   config = parseConfig(options)
 
@@ -242,9 +246,9 @@ export const register: Register = (on, options) => {
   })
 
   on('command.run', { command: COMMAND }, async $ => {
-    await $.ui.open({ id: PANE, title: 'Render deploys' })
+    const opened = await $.ui.open({ id: PANE, title: 'Render deploys' })
     void refreshNow($)
-    return { text: 'Render deploys pane opened.' }
+    return { text: opened.isPlaced ? 'Render deploys pane opened.' : notPlaced('The Render deploys pane', opened.reason) }
   })
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {

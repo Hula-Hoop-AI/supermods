@@ -197,6 +197,10 @@ function age(iso: string | undefined, now: number): string {
   return `${Math.floor(mins / 10_080)}w`
 }
 
+function notPlaced(what: string, reason: string) {
+  return `${what} is open, but this surface is not showing it: ${reason}`
+}
+
 export const register: Register = (on, options) => {
   opts = options
 
@@ -208,9 +212,9 @@ export const register: Register = (on, options) => {
   })
 
   on('command.run', { command: COMMAND }, async $ => {
-    await $.ui.open({ id: PANE, title: 'My issues' })
+    const opened = await $.ui.open({ id: PANE, title: 'My issues' })
     startPolling($)
-    return { text: `My issues pane opened (refreshes every ${refreshMs() / 60_000} min).` }
+    return { text: opened.isPlaced ? `My issues pane opened (refreshes every ${refreshMs() / 60_000} min).` : notPlaced('The My issues pane', opened.reason) }
   })
 
   on('ui.close', { id: PANE }, async ($, e, next) => {

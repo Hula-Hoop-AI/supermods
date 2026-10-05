@@ -95,7 +95,7 @@ test('/tide and the Hide button toggle the band', async ($: any, on: any) => {
   engine(on);
   await measure($, 40);
   const ui = await $.ui.mount({ ...BAND, surface: 'terminal' });
-  await ui.press({ key: 'hide' });
+  await ui.press({ key: 'tide-hide' });
   expect(await ui.find({ type: 'Text', text: 'engine' })).toBeDefined();
   expect((await $.command.run({ command: 'tide', args: '' })).text).toBe('Tide band shown.');
   expect(await ui.find({ type: 'Text', text: /40% · mid tide/ })).toBeDefined();
