@@ -1,4 +1,4 @@
-import type { Ledger, Source } from '../types'
+import type { Ledger, Source } from '../../types'
 
 // Query parameters that only track the click, never change the page.
 const TRACKING_PARAMS = new Set([
@@ -153,8 +153,11 @@ export function label(s: Source): string {
 
 export const plural = (n: number, word: string, many = `${word}s`) => `${n} ${n === 1 ? word : many}`
 
-export const isLedger = (v: unknown): v is Ledger =>
+const isLedger = (v: unknown): v is Ledger =>
   isObject(v) && Array.isArray(v.sources) && Array.isArray(v.searches)
+
+/** A stored value as a ledger; anything else (nothing saved, another shape) is the empty one. */
+export const asLedger = (v: unknown): Ledger => (isLedger(v) ? v : EMPTY)
 
 /** One line: pages fetched (failed), search results seen, searches. */
 export function summary(l: Ledger): string {

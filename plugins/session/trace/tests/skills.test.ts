@@ -47,14 +47,14 @@ const typeSkill = ($: Engine, command: string, args = '') => $.command.run({ com
 
 const mount = ($: Engine, surface: 'terminal' | 'desktop') =>
   $.ui.mount({
-    plugin: 'skill-trace', surface, component: 'Pane',
-    props: { title: 'Skill trace', isFocused: false } as never, requestId: 'skill-trace',
+    plugin: 'trace', surface, component: 'Pane',
+    props: { title: 'Trace', isFocused: false } as never, requestId: 'trace',
   })
 
-// The pane's entry rows, top to bottom (each row is one Text holding the whole line).
+// The pane's entry rows, newest first (each row is one Text holding the whole line).
 type Ui = Awaited<ReturnType<typeof mount>>
 const entryLines = async (ui: Ui) =>
-  (await ui.findAll({ type: 'Text', text: /^\d\d:\d\d:\d\d t\d+ (user|model|other)/ })).map(t => t.text)
+  (await ui.findAll({ type: 'Text', text: /^\d\d:\d\d:\d\d t\d+ +\S+ +(user|model|other)/ })).map(t => t.text)
 
 for (const surface of ['terminal', 'desktop'] as const) {
   test(`records a model Skill call with args, source, size and turn on ${surface}`, async ($, on) => {
@@ -64,7 +64,7 @@ for (const surface of ['terminal', 'desktop'] as const) {
     const ui = await mount($, surface)
     expect(await ui.find({ text: /1 skill load\b/ })).toBeDefined()
     expect(await entryLines(ui)).toEqual([
-      expect.stringMatching(/ t3 model superpowers:brainstorming plugin:superpowers ~1\.0k tok "design a cache"$/),
+      expect.stringMatching(/ t3 superpowers:brainstorming model plugin:superpowers ~1\.0k tok "design a cache"$/),
     ])
   })
 
@@ -72,7 +72,7 @@ for (const surface of ['terminal', 'desktop'] as const) {
     engine($, on, { n: 2 })
     await typeSkill($, 'commit', 'fix typo')
     const ui = await mount($, surface)
-    expect(await entryLines(ui)).toEqual([expect.stringMatching(/ t3 user {2}commit userSettings ~200 tok "fix typo"$/)])
+    expect(await entryLines(ui)).toEqual([expect.stringMatching(/ t3 commit user userSettings ~200 tok "fix typo"$/)])
   })
 
   test(`ignores commands that are not skills on ${surface}`, async ($, on) => {
@@ -87,7 +87,7 @@ for (const surface of ['terminal', 'desktop'] as const) {
     engine($, on)
     await $.skill.prompt({ skill: 'superpowers:brainstorming', text: 'abcd' })
     const ui = await mount($, surface)
-    expect(await entryLines(ui)).toEqual([expect.stringMatching(/ t1 other superpowers:brainstorming plugin:superpowers ~1 tok$/)])
+    expect(await entryLines(ui)).toEqual([expect.stringMatching(/ t1 superpowers:brainstorming other plugin:superpowers ~1 tok$/)])
   })
 
   test(`marks forked skills on ${surface}`, async ($, on) => {
@@ -95,7 +95,7 @@ for (const surface of ['terminal', 'desktop'] as const) {
     skillTool($, on, { forked: true })
     await callSkill($, 'review')
     const ui = await mount($, surface)
-    expect(await ui.find({ text: /model review.*forked/ })).toBeDefined()
+    expect(await ui.find({ text: /review model.*forked/ })).toBeDefined()
   })
 
   test(`a denied Skill call is recorded as failed, with no source or size, on ${surface}`, async ($, on) => {
@@ -103,7 +103,7 @@ for (const surface of ['terminal', 'desktop'] as const) {
     skillTool($, on, { deny: 'not allowed here' })
     await callSkill($, 'deploy', 'prod')
     const ui = await mount($, surface)
-    expect(await entryLines(ui)).toEqual([expect.stringMatching(/model deploy denied: not allowed here "prod"$/)])
+    expect(await entryLines(ui)).toEqual([expect.stringMatching(/deploy model denied: not allowed here "prod"$/)])
   })
 
   test(`keeps loads in order and counts per skill on ${surface}`, async ($, on) => {
@@ -117,8 +117,8 @@ for (const surface of ['terminal', 'desktop'] as const) {
     expect(await ui.find({ text: /3 skill loads · 2 skills/ })).toBeDefined()
     expect(await ui.find({ text: /^commit ×2 {2}superpowers:brainstorming ×1$/ })).toBeDefined()
     const lines = await entryLines(ui)
-    expect(lines.map(l => l.match(/t\d (user|model) +\S+/)?.[0])).toEqual([
-      't1 user  commit', 't1 model superpowers:brainstorming', 't2 user  commit',
+    expect(lines.map(l => l.match(/t\d +\S+ +(user|model)/)?.[0].replace(/ +/g, ' '))).toEqual([
+      't2 commit user', 't1 superpowers:brainstorming model', 't1 commit user',
     ])
   })
 
@@ -132,17 +132,17 @@ for (const surface of ['terminal', 'desktop'] as const) {
     expect(await entryLines(ui)).toEqual([])
   })
 
-  test(`maxEntries bounds the list but not the counts on ${surface}`, { options: { maxEntries: 2 } }, async ($, on) => {
+  test(`skills_max_entries bounds the list but not the counts on ${surface}`, { options: { skills_max_entries: 2 } }, async ($, on) => {
     engine($, on)
     for (const s of ['alpha', 'beta', 'gamma']) await typeSkill($, s)
     const ui = await mount($, surface)
     expect(await ui.find({ text: /3 skill loads/ })).toBeDefined()
     const lines = await entryLines(ui)
-    expect(lines.map(l => l.match(/user +(\w+)/)?.[1])).toEqual(['beta', 'gamma'])
+    expect(lines.map(l => l.match(/(\w+) +user/)?.[1])).toEqual(['gamma', 'beta'])
     expect(await ui.find({ text: /^alpha ×1 {2}beta ×1 {2}gamma ×1$/ })).toBeDefined()
   })
 
-  test(`showArgs off records no arguments on ${surface}`, { options: { showArgs: false } }, async ($, on) => {
+  test(`skills_show_args off records no arguments on ${surface}`, { options: { skills_show_args: false } }, async ($, on) => {
     engine($, on)
     skillTool($, on)
     await callSkill($, 'commit', 'secret-ish args')
@@ -162,7 +162,7 @@ test('long args are truncated', async ($, on) => {
   expect(line).toMatch(/"y{79}…"$/)
 })
 
-test('/skill-trace opens the pane and reports the count, unrecorded itself', async ($, on) => {
+test('/trace opens the pane on Skills and reports the count, unrecorded itself', async ($, on) => {
   engine($, on)
   const opened: string[] = []
   on('ui.open', async (_, e) => {
@@ -170,9 +170,9 @@ test('/skill-trace opens the pane and reports the count, unrecorded itself', asy
     return { value: { isPlaced: true as const } }
   })
   await typeSkill($, 'commit')
-  const r = await typeSkill($, 'skill-trace')
-  expect(opened).toEqual(['skill-trace'])
-  expect(JSON.stringify(r)).toMatch(/1 skill load this session/)
+  const r = await typeSkill($, 'trace')
+  expect(opened).toEqual(['trace'])
+  expect(JSON.stringify(r)).toMatch(/Trace pane opened on Skills: 1 skill load this session/)
 })
 
 test('the status line is off by default', async ($, on) => {
@@ -186,7 +186,7 @@ test('the status line is off by default', async ($, on) => {
   expect(status.filter(s => s !== undefined)).toEqual([])
 })
 
-test('statusLine shows the count and Clear removes it', { options: { statusLine: true } }, async ($, on) => {
+test('skills_status_line shows the count and Clear removes it', { options: { skills_status_line: true } }, async ($, on) => {
   engine($, on)
   const status: (string | undefined)[] = []
   on('ui.status', async (_, e) => {

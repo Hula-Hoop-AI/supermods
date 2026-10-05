@@ -1,0 +1,60 @@
+{
+  "name": "trace",
+  "version": "0.1.0",
+  "description": "A /trace pane with two tabs: the skills that loaded this session (when, from where, who invoked them, how large) and the web pages Claude fetched or saw in search results, ready to insert as citations",
+  "author": { "name": "nadav-grs" },
+  "license": "MIT",
+  "keywords": ["mod", "observability", "skills", "web", "citations", "pane"],
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "skills_max_entries": {
+      "type": "number",
+      "title": "Skills: max entries",
+      "description": "How many skill loads the Skills tab keeps; the oldest drop off first. Per-skill counts are kept regardless.",
+      "default": 200
+    },
+    "skills_show_args": {
+      "type": "boolean",
+      "title": "Skills: record arguments",
+      "description": "Record and show the arguments each skill was invoked with (truncated to 80 characters).",
+      "default": true
+    },
+    "skills_status_line": {
+      "type": "boolean",
+      "title": "Skills: status line count",
+      "description": "Show a compact skill-load count in the status line under the prompt.",
+      "default": false
+    },
+    "sources_citation_format": {
+      "type": "string",
+      "title": "Sources: citation format",
+      "description": "How Insert citations writes the list: markdown (- [Title](url)) or numbered ([1] Title. url).",
+      "options": ["markdown", "numbered"],
+      "default": "markdown"
+    },
+    "sources_cite_search_results": {
+      "type": "boolean",
+      "title": "Sources: cite search results",
+      "description": "Also cite pages that only appeared in search results. Off: only pages Claude fetched successfully are cited.",
+      "default": false
+    },
+    "sources_extra_tools": {
+      "type": "string",
+      "title": "Sources: extra fetch tools",
+      "description": "Comma-separated names of other tools that fetch a URL, recorded like WebFetch, e.g. mcp__fetch__fetch. Empty: WebFetch and WebSearch only.",
+      "default": ""
+    },
+    "sources_url_arg": {
+      "type": "string",
+      "title": "Sources: URL argument of extra tools",
+      "description": "The argument that holds the URL in the extra fetch tools' calls.",
+      "default": "url"
+    },
+    "sources_project_history": {
+      "type": "boolean",
+      "title": "Sources: keep project history",
+      "description": "Also keep the sources of every session in this project, on disk in the plugin's store, and add a pane button to show them.",
+      "default": false
+    }
+  }
+}

@@ -1,17 +1,18 @@
-import { atom, read, update } from 'claude-code'
+import { atom, update } from 'claude-code'
 import type { EngineInterface, Register, ToolCallResult } from 'claude-code'
 
-import type { InvokedBy, Trace, TraceEntry } from '../types'
+import type { InvokedBy, Trace, TraceEntry } from '../../types'
+import { plural } from './ledger'
+import type { TabModel } from './tab'
 
-const PANE = 'skill-trace'
 const ARGS_MAX = 80
 const DEFAULT_MAX_ENTRIES = 200
 const MAX_ENTRIES_CAP = 5000
 const COUNTS_SHOWN = 8
-const EMPTY: Trace = { entries: [], counts: {}, total: 0 }
+export const EMPTY: Trace = { entries: [], counts: {}, total: 0 }
 const BY_COLOR: Record<InvokedBy, string> = { model: 'cyan', user: 'yellow', other: 'gray' }
 
-const trace = atom({ plugin: 'skill-trace', key: 'trace' } as const, EMPTY)
+const trace = atom({ plugin: 'trace', key: 'skills' } as const, EMPTY)
 
 // A skill load in flight: a Skill tool call or a typed /skill, already recorded as `seq`.
 // The engine expands the skill's prompt (`skill.prompt`) inside it, which adds the size.
@@ -86,8 +87,10 @@ async function begin($: EngineInterface, skill: string, entry: Omit<TraceEntry, 
 
 const end = (p: Pending) => pending.splice(pending.indexOf(p), 1)
 
+export const statusText = (t: Trace) => (statusLine && t.total ? `skills: ${t.total}` : undefined)
+
 function showStatus($: EngineInterface, t: Trace) {
-  if (statusLine) $.ui.status(t.total ? `skills: ${t.total}` : undefined)
+  if (statusLine) $.ui.status(statusText(t))
 }
 
 async function record($: EngineInterface, e: Omit<TraceEntry, 'seq' | 'turn' | 'at'>) {
@@ -120,26 +123,11 @@ function outcome(r: ToolCallResult): { mode?: 'inline' | 'forked'; failed?: stri
   return { mode }
 }
 
-function notPlaced(what: string, reason: string) {
-  return `${what} is open, but this surface is not showing it: ${reason}`
-}
-
-export const register: Register = (on, options) => {
-  const max = Number(options.maxEntries)
+export const recordSkills: Register = (on, options) => {
+  const max = Number(options.skills_max_entries)
   maxEntries = Number.isFinite(max) ? Math.min(MAX_ENTRIES_CAP, Math.max(1, Math.floor(max))) : DEFAULT_MAX_ENTRIES
-  showArgs = options.showArgs !== false
-  statusLine = options.statusLine === true
-
-  on('session.start', async ($, e, next) => {
-    await $.command.register({
-      name: 'skill-trace',
-      description: 'Show which skills loaded this session, when and how',
-    })
-    // After a reload (a settings change), match the status line to the setting.
-    if (statusLine) showStatus($, await read($, trace))
-    else $.ui.status(undefined)
-    return next(e)
-  })
+  showArgs = options.skills_show_args !== false
+  statusLine = options.skills_status_line === true
 
   const argsOf = (args: string | undefined) => (showArgs && args ? truncate(args, ARGS_MAX) : undefined)
 
@@ -158,14 +146,8 @@ export const register: Register = (on, options) => {
   })
 
   // A typed /name is a skill when the model's skill listing names it; every other
-  // command (built-ins, other mods' commands) passes by unrecorded.
+  // command (built-ins, other mods' commands, /trace itself) passes by unrecorded.
   on('command.run', async ($, e, next) => {
-    if (e.command === 'skill-trace') {
-      const opened = await $.ui.open({ id: PANE, title: 'Skill trace' })
-      const t = await read($, trace)
-      const loads = `${t.total} skill load${t.total === 1 ? '' : 's'} this session.`
-      return { text: opened.isPlaced ? `Skill trace pane opened: ${loads}` : `${notPlaced('The Skill trace pane', opened.reason)}\n${loads}` }
-    }
     const source = await listedSource($, e.command)
     if (source === undefined) return next(e)
     const p = await begin($, e.command, { skill: e.command, source, by: 'user', args: argsOf(e.args) })
@@ -190,55 +172,35 @@ export const register: Register = (on, options) => {
     }
     return r
   })
+}
 
-  on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
-    const { Box, Text, Button } = $.ui.resolve(e)
-    const t = await read($, trace)
-    const kinds = Object.keys(t.counts).length
-    const room = Math.max(1, (e.viewport?.rows ?? 24) - 6)
-    const shown = t.entries.slice(-room)
-    const top = topCounts(t.counts, COUNTS_SHOWN)
+export const skillsReport = (t: Trace) => `${plural(t.total, 'skill load')} this session.`
 
-    return (
-      <Box flexDirection="column">
-        <Box flexDirection="row" gap={1}>
-          <Text bold>
-            {t.total} skill load{t.total === 1 ? '' : 's'}
-            <Text dimColor> · {kinds} skill{kinds === 1 ? '' : 's'}</Text>
-          </Text>
-          <Button
-            key="clear"
-            onPress={async () => {
-              await update($, trace, () => EMPTY)
-              if (statusLine) $.ui.status(undefined)
-            }}
-          >
-            Clear
-          </Button>
-        </Box>
-        {t.total === 0 && <Text dimColor>No skills loaded yet.</Text>}
-        {top.length > 0 && (
-          <Text>
-            {top.map(([name, n]) => `${name} ×${n}`).join('  ')}
-            {kinds > COUNTS_SHOWN && <Text dimColor>  +{kinds - COUNTS_SHOWN} more</Text>}
-          </Text>
-        )}
-        {t.entries.length > shown.length && (
-          <Text dimColor>…{t.entries.length - shown.length} earlier</Text>
-        )}
-        {shown.map(x => (
-          <Text>
-            <Text dimColor>{clock(x.at)} t{x.turn} </Text>
-            <Text color={BY_COLOR[x.by]}>{x.by.padEnd(5)} </Text>
-            <Text bold>{x.skill}</Text>
-            {x.source && <Text dimColor> {x.source}</Text>}
-            {x.chars !== undefined && <Text> {size(x.chars)}</Text>}
-            {x.mode === 'forked' && <Text color="magenta"> forked</Text>}
-            {x.failed && <Text color="red"> {x.failed}</Text>}
-            {showArgs && x.args && <Text dimColor> "{x.args}"</Text>}
-          </Text>
-        ))}
-      </Box>
-    )
-  })
+export function skillsModel(t: Trace, since: number, onClear: () => void): TabModel {
+  const kinds = Object.keys(t.counts).length
+  const top = topCounts(t.counts, COUNTS_SHOWN).map(([name, n]) => `${name} ×${n}`)
+  if (kinds > COUNTS_SHOWN) top.push(`+${kinds - COUNTS_SHOWN} more`)
+  return {
+    summary: plural(t.total, 'skill load'),
+    context: plural(kinds, 'skill'),
+    actions: [{ key: 'clear', label: 'Clear', onPress: onClear }],
+    notes: top.length ? [top.join('  ')] : [],
+    checkedAt: t.entries.at(-1)?.at ?? since,
+    empty: 'No skills loaded yet.',
+    // Newest first: the pane keeps the top rows when they overflow.
+    rows: t.entries.toReversed().map(x => ({
+      id: String(x.seq),
+      state: x.failed ? 'error' : 'idle',
+      label: `${clock(x.at)} t${x.turn}`,
+      title: x.skill,
+      tags: [
+        { text: x.by, color: BY_COLOR[x.by] },
+        ...(x.source ? [{ text: x.source, dimColor: true }] : []),
+        ...(x.chars !== undefined ? [{ text: size(x.chars) }] : []),
+        ...(x.mode === 'forked' ? [{ text: 'forked', color: 'magenta' }] : []),
+        ...(x.failed ? [{ text: x.failed, color: 'red' }] : []),
+        ...(showArgs && x.args ? [{ text: `"${x.args}"`, dimColor: true }] : []),
+      ],
+    })),
+  }
 }
