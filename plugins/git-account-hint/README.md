@@ -13,7 +13,7 @@ Example: `git push` fails with `Permission to org/repo.git denied to alice`. Cla
 ## Install
 
 ```
-/plugin marketplace add ArielPorath/supermods
+/plugin marketplace add Hula-Hoop-AI/supermods
 /plugin install git-account-hint@supermods
 ```
 

@@ -8,7 +8,7 @@ re-run from: the session is reset to the point just before it and continues from
 ## Install
 
 ```
-/plugin marketplace add ArielPorath/supermods
+/plugin marketplace add Hula-Hoop-AI/supermods
 /plugin install agent-debugger@supermods
 ```
 

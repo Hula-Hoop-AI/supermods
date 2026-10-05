@@ -13,7 +13,7 @@ what happens, or draw their own UI. Mods ship inside plugins. This repo is a plu
 **marketplace**, so anyone can install any mod with:
 
 ```
-/plugin marketplace add ArielPorath/supermods
+/plugin marketplace add Hula-Hoop-AI/supermods
 /plugin install <mod-name>@supermods
 ```
 

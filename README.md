@@ -5,7 +5,7 @@ Claude Code: it can watch, rewrite or answer tool calls, prompts and turns, draw
 status lines, and add slash commands. Mods need Claude Code v2.1.287 or later.
 
 ```
-/plugin marketplace add ArielPorath/supermods
+/plugin marketplace add Hula-Hoop-AI/supermods
 /plugin install <mod-name>@supermods
 ```
 
@@ -33,7 +33,7 @@ claude plugin validate path/to/mod
 To try a mod without installing it:
 
 ```bash
-git clone https://github.com/ArielPorath/supermods
+git clone https://github.com/Hula-Hoop-AI/supermods
 claude --plugin-dir supermods/plugins/<mod-name>
 ```
 

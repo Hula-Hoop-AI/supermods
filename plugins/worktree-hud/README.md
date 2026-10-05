@@ -7,7 +7,7 @@ ones.
 ## Install
 
 ```
-/plugin marketplace add ArielPorath/supermods
+/plugin marketplace add Hula-Hoop-AI/supermods
 /plugin install worktree-hud@supermods
 ```
 
