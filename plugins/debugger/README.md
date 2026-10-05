@@ -23,9 +23,10 @@ works while a turn is running.
 | Stop | Abort the running turn |
 | Play / Continue | Run until the next checked breakpoint |
 
-The **events** tab lists the session's events, newest first. The buttons above the list filter
-it: one per kind of event with its count, and one for subagents' events once there are any. A
-filtered-out kind is still recorded and still stops on its breakpoint, and the held event always
+The **events** tab lists the session's events, newest first. The **show** dropdown above the
+list filters it: a checkbox per kind of event with its count, and one for subagents' events once
+there are any. An
+unchecked kind is still recorded and still stops on its breakpoint, and the held event always
 shows. An event opens in place to its fields and to the conversation the model had before it.
 While an event is held, its fields are inputs:
 

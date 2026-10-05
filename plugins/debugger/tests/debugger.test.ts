@@ -193,6 +193,8 @@ test('the filter hides kinds of events, but never the held one', async ($: any, 
     await ui.drawn()
     expect(await ui.find({ type: 'Button', text: /#\d+ tool call ·/ })).toBeDefined()
 
+    await ui.press({ key: 'filter' })
+    expect(await ui.find({ type: 'Button', text: /\[x\] tool calls \d+/ })).toBeDefined()
     await ui.press({ key: 'filter:tool' })
     expect(await ui.find({ type: 'Button', text: /#\d+ tool call ·/ })).toBeUndefined()
     expect(await ui.find({ type: 'Button', text: /#\d+ tool result ·/ })).toBeDefined()
@@ -214,6 +216,9 @@ test('the filter hides kinds of events, but never the held one', async ($: any, 
     await ui.press({ key: 'filter:tool' })
     await ui.press({ key: 'filter:result' })
     expect(await ui.find({ type: 'Button', text: /#\d+ tool call ·/ })).toBeDefined()
+    // The dropdown is module state: close it for the next surface.
+    await ui.press({ key: 'filter' })
+    expect(await ui.find({ type: 'Button', text: /\[x\] tool calls/ })).toBeUndefined()
     await ui.unmount()
   }
 })

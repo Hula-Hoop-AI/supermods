@@ -45,6 +45,7 @@ export const dbg = {
   expandedId: null as number | null,
   ctxOpen: false,
   toolsOpen: false,
+  filterOpen: false,
 }
 
 /** Text an element may hold: tab and newline are the only control characters allowed. */

@@ -29,6 +29,7 @@ type Field = [label: string, value: string]
 const shown = (value: unknown) => (typeof value === 'string' ? value : JSON.stringify(value))
 const usageText = (usage: Usage) => (usage ? `${usage.input_tokens ?? '?'} in · ${usage.output_tokens ?? '?'} out` : 'none reported')
 const check = (isOn: boolean, label: string) => `${isOn ? '[x]' : '[ ]'} ${label}`
+const plural = (kind: Kind) => `${KIND_LABEL[kind]}s`
 const isArmed = (s: DebugSettings) => s.breaks.includes('tool') || s.breaks.includes('result')
 
 /** Picking tools means stopping on them: with neither tool event checked, "tool call" is checked too. */
@@ -41,6 +42,22 @@ function toolSummary(s: DebugSettings) {
   if (count === total) return 'all tools'
   if (count === 0) return 'no tools'
   return on.length <= 3 && !s.otherTools ? on.join(', ') : `${count} of ${total} tools`
+}
+
+function filterSummary(s: DebugSettings, hasAgents: boolean) {
+  const on = KINDS.filter(kind => !s.hidden.includes(kind))
+  const kinds =
+    on.length === KINDS.length ? 'all events' : on.length === 0 ? 'no events' : on.length <= 2 ? on.map(plural).join(', ') : `${on.length} of ${KINDS.length} kinds`
+  return hasAgents && s.hideAgents ? `${kinds}, no subagents` : kinds
+}
+
+function rowOf(t: UI, key: string, label: string, onPress: () => void, indent = 0) {
+  const { Box, Button } = t
+  return (
+    <Box flexDirection="row" marginLeft={indent}>
+      <Button key={key} plain onPress={onPress}>{label}</Button>
+    </Box>
+  )
 }
 
 function statusLine(s: DebugSettings) {
@@ -125,21 +142,14 @@ function drawEvents(t: UI, s: DebugSettings, io: Controls) {
   )
   return (
     <Box flexDirection="column">
-      <Box flexDirection="row" gap={1} flexWrap="wrap" marginBottom={1}>
-        {KINDS.map(kind => (
-          <Button
-            key={`filter:${kind}`}
-            variant={s.hidden.includes(kind) ? 'secondary' : 'primary'}
-            onPress={() => io.set(x => ({ ...x, hidden: flip(x.hidden, kind) }))}
-          >
-            {`${KIND_LABEL[kind]} ${count(kind)}`}
-          </Button>
-        ))}
-        {agents > 0 && (
-          <Button key="filter:agents" variant={s.hideAgents ? 'secondary' : 'primary'} onPress={() => io.set(x => ({ ...x, hideAgents: !x.hideAgents }))}>
-            {`subagents ${agents}`}
-          </Button>
-        )}
+      <Box flexDirection="column" marginBottom={1}>
+        {rowOf(t, 'filter', `${dbg.filterOpen ? '▾' : '▸'} show: ${filterSummary(s, agents > 0)}`, () => ((dbg.filterOpen = !dbg.filterOpen), io.redraw()))}
+        {dbg.filterOpen && [
+          ...KINDS.map(kind =>
+            rowOf(t, `filter:${kind}`, check(!s.hidden.includes(kind), `${plural(kind)} ${count(kind)}`), () => io.set(x => ({ ...x, hidden: flip(x.hidden, kind) })), 2),
+          ),
+          agents > 0 && rowOf(t, 'filter:agents', check(!s.hideAgents, `subagents ${agents}`), () => io.set(x => ({ ...x, hideAgents: !x.hideAgents })), 2),
+        ]}
       </Box>
       {passing.length === 0 && <Text dimColor>{`All ${dbg.events.length} events are filtered out.`}</Text>}
       {passing.slice(-dbg.listShown).reverse().map(ev => drawEvent(t, ev, io))}
@@ -358,11 +368,7 @@ function drawEditors(t: UI, held: Hold, io: Controls) {
 
 function drawBreakpoints(t: UI, s: DebugSettings, io: Controls) {
   const { Box, Text, Button } = t
-  const row = (key: string, label: string, onPress: () => void, indent = 0) => (
-    <Box flexDirection="row" marginLeft={indent}>
-      <Button key={key} plain onPress={onPress}>{label}</Button>
-    </Box>
-  )
+  const row = (key: string, label: string, onPress: () => void, indent = 0) => rowOf(t, key, label, onPress, indent)
   return (
     <Box flexDirection="column" gap={1}>
       <Text dimColor wrap="wrap">
