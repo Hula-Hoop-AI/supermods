@@ -76,7 +76,10 @@ claude --plugin-dir supermods/plugins/<mod-name>
 
 ## Contributing a mod
 
-Open this repo in Claude Code and describe the mod you want. The
+Open this repo in Claude Code and describe the mod you want. Not sure what to build? Ask
+"what mods should I build?": the [`suggest-mods`](.claude/skills/suggest-mods/SKILL.md) skill
+digests your own Claude Code history for repeated commands, errors and blocked calls, checks what
+exists here and elsewhere, and proposes a ranked list. The
 [`create-mod`](.claude/skills/create-mod/SKILL.md) skill scaffolds it under `plugins/<mod-name>/`,
 writes its tests and README, and registers it in the marketplace. A mod is merged when it is:
 
