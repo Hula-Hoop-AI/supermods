@@ -24,8 +24,10 @@ works while a turn is running.
 | Play / Continue | Run until the next checked breakpoint |
 
 The **events** tab lists the session's events, newest first. The **show** dropdown above the
-list filters it: a checkbox per kind of event with its count, and one for subagents' events once
-there are any; two kinds are observed only, never held: **skill loads** (a skill's instructions
+list filters it: a checkbox per kind of event, one for subagents' events once there are any, and
+Select all / Deselect all. An event shows when its kind and its origin are both checked, so each
+checkbox counts what it would show under the others ("subagents 0 of 8" while their kinds are
+hidden). Two kinds are observed only, never held: **skill loads** (a skill's instructions
 entering the conversation, with their size) and **web sources** (each WebFetch URL and WebSearch
 query, once it has run). An
 unchecked kind is still recorded and still stops on its breakpoint, and the held event always

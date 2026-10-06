@@ -51,6 +51,19 @@ function filterSummary(s: DebugSettings, hasAgents: boolean) {
   return hasAgents && s.hideAgents ? `${kinds}, no subagents` : kinds
 }
 
+/** How many a row would show given the other checks, against how many there are. */
+const ofTotal = (shown: number, total: number) => (shown === total ? `${total}` : `${shown} of ${total}`)
+
+function allNoneRow(t: UI, prefix: string, onAll: () => void, onNone: () => void) {
+  const { Box, Button } = t
+  return (
+    <Box flexDirection="row" gap={3} marginLeft={2}>
+      <Button key={`${prefix}-all`} plain onPress={onAll}>Select all</Button>
+      <Button key={`${prefix}-none`} plain onPress={onNone}>Deselect all</Button>
+    </Box>
+  )
+}
+
 function rowOf(t: UI, key: string, label: string, onPress: () => void, indent = 0) {
   const { Box, Button } = t
   return (
@@ -134,21 +147,31 @@ function drawEvents(t: UI, s: DebugSettings, io: Controls) {
   if (dbg.events.length === 0) {
     return <Text dimColor wrap="wrap">No events yet. Press Pause to stop at the next event, or set breakpoints, then send a prompt.</Text>
   }
-  const count = (kind: Kind) => dbg.events.filter(ev => ev.kind === kind).length
-  const agents = dbg.events.filter(ev => ev.agentId !== undefined).length
+  const kindShown = (ev: DebugEvent) => !s.hidden.includes(ev.kind)
+  const agentShown = (ev: DebugEvent) => !(s.hideAgents && ev.agentId !== undefined)
+  // Each row counts what checking it shows under the other checks, so a row whose events
+  // another check hides reads "0 of n" rather than promising events that will not appear.
+  const ofKind = (kind: Kind) => dbg.events.filter(ev => ev.kind === kind)
+  const count = (kind: Kind) => ofTotal(ofKind(kind).filter(agentShown).length, ofKind(kind).length)
+  const ofAgents = dbg.events.filter(ev => ev.agentId !== undefined)
+  const agents = ofTotal(ofAgents.filter(kindShown).length, ofAgents.length)
   // A held event shows whatever the filter says: it is what the controls act on.
-  const passing = dbg.events.filter(
-    ev => ev.status === 'paused' || (!s.hidden.includes(ev.kind) && !(s.hideAgents && ev.agentId !== undefined)),
-  )
+  const passing = dbg.events.filter(ev => ev.status === 'paused' || (kindShown(ev) && agentShown(ev)))
   return (
     <Box flexDirection="column">
       <Box flexDirection="column" marginBottom={1}>
-        {rowOf(t, 'filter', `${dbg.filterOpen ? '▾' : '▸'} show: ${filterSummary(s, agents > 0)}`, () => ((dbg.filterOpen = !dbg.filterOpen), io.redraw()))}
+        {rowOf(t, 'filter', `${dbg.filterOpen ? '▾' : '▸'} show: ${filterSummary(s, ofAgents.length > 0)}`, () => ((dbg.filterOpen = !dbg.filterOpen), io.redraw()))}
         {dbg.filterOpen && [
+          allNoneRow(
+            t,
+            'filter',
+            () => io.set(x => ({ ...x, hidden: [], hideAgents: false })),
+            () => io.set(x => ({ ...x, hidden: [...KINDS], hideAgents: true })),
+          ),
           ...KINDS.map(kind =>
             rowOf(t, `filter:${kind}`, check(!s.hidden.includes(kind), `${plural(kind)} ${count(kind)}`), () => io.set(x => ({ ...x, hidden: flip(x.hidden, kind) })), 2),
           ),
-          agents > 0 && rowOf(t, 'filter:agents', check(!s.hideAgents, `subagents ${agents}`), () => io.set(x => ({ ...x, hideAgents: !x.hideAgents })), 2),
+          ofAgents.length > 0 && rowOf(t, 'filter:agents', check(!s.hideAgents, `subagents ${agents}`), () => io.set(x => ({ ...x, hideAgents: !x.hideAgents })), 2),
         ]}
       </Box>
       {passing.length === 0 && <Text dimColor>{`All ${dbg.events.length} events are filtered out.`}</Text>}
@@ -382,7 +405,7 @@ function drawEditors(t: UI, held: Hold, io: Controls) {
 }
 
 function drawBreakpoints(t: UI, s: DebugSettings, io: Controls) {
-  const { Box, Text, Button } = t
+  const { Box, Text } = t
   const row = (key: string, label: string, onPress: () => void, indent = 0) => rowOf(t, key, label, onPress, indent)
   return (
     <Box flexDirection="column" gap={1}>
@@ -399,10 +422,12 @@ function drawBreakpoints(t: UI, s: DebugSettings, io: Controls) {
           () => ((dbg.toolsOpen = !dbg.toolsOpen), io.redraw()),
         )}
         {dbg.toolsOpen && [
-          <Box flexDirection="row" gap={3} marginLeft={2}>
-            <Button key="bp-tools-all" plain onPress={() => io.set(x => armTools({ ...x, toolsOff: [], otherTools: true }))}>Select all</Button>
-            <Button key="bp-tools-none" plain onPress={() => io.set(x => ({ ...x, toolsOff: x.tools, otherTools: false }))}>Deselect all</Button>
-          </Box>,
+          allNoneRow(
+            t,
+            'bp-tools',
+            () => io.set(x => armTools({ ...x, toolsOff: [], otherTools: true })),
+            () => io.set(x => ({ ...x, toolsOff: x.tools, otherTools: false })),
+          ),
           ...s.tools.map(name =>
             row(
               `bp-tool-${name}`,

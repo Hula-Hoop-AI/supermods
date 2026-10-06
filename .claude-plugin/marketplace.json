@@ -25,7 +25,7 @@
       "name": "debugger",
       "source": "./plugins/debugger",
       "description": "A step debugger for the agent loop: pause at prompts, model requests, responses, tool calls and results; inspect and edit them; play, step or stop. Skill loads and web sources are listed too.",
-      "version": "0.3.0",
+      "version": "0.3.1",
       "category": "session",
       "keywords": [
         "debugger",

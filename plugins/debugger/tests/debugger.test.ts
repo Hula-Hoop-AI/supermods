@@ -274,3 +274,31 @@ test('skill loads and web sources are listed, filtered, and never held', async (
   expect(await ui.find({ type: 'Button', text: /skill loads?$/ })).toBeUndefined()
   await ui.unmount()
 })
+
+test('the filter counts what each row would show, and selects or deselects every row at once', async ($: any, on: any) => {
+  engine(on)
+  on('tool.call', () => ({ result: { stdout: 'ok' }, text: 'ok' }))
+  const ui = await $.ui.mount({ ...PANE, surface: 'desktop' })
+  await $.tool.call({ tool: 'Bash', command: 'ls' })
+  await $.tool.call({ tool: 'Bash', command: 'pwd', agentId: 'a1' })
+  await ui.drawn()
+
+  await ui.press({ key: 'filter' })
+  expect(await ui.find({ type: 'Button', text: /\[x\] tool calls 2$/ })).toBeDefined()
+  expect(await ui.find({ type: 'Button', text: /\[x\] subagents 2$/ })).toBeDefined()
+  // With tool calls hidden, checking subagents can only reveal the agent's tool result.
+  await ui.press({ key: 'filter:tool' })
+  expect(await ui.find({ type: 'Button', text: /\[x\] subagents 1 of 2$/ })).toBeDefined()
+  await ui.press({ key: 'filter:agents' })
+  expect(await ui.find({ type: 'Button', text: /\[ \] tool calls 1 of 2$/ })).toBeDefined()
+  expect(await ui.find({ type: 'Button', text: /\(agent\)/ })).toBeUndefined()
+
+  await ui.press({ key: 'filter-none' })
+  expect(await ui.find({ type: 'Text', text: /All 4 events are filtered out/ })).toBeDefined()
+  await ui.press({ key: 'filter-all' })
+  expect(await ui.find({ type: 'Button', text: /\[x\] tool calls 2$/ })).toBeDefined()
+  expect(await ui.find({ type: 'Button', text: /\[x\] subagents 2$/ })).toBeDefined()
+  expect(await ui.find({ type: 'Button', text: /tool call \(agent\) ·/ })).toBeDefined()
+  await ui.press({ key: 'filter' })
+  await ui.unmount()
+})
