@@ -16,6 +16,11 @@ A mod's name is its slash command: `debugger` adds `/debugger`, `tide` adds `/ti
   <br><sub><a href="plugins/debugger/"><code>debugger</code></a>: pause the agent loop at a tool call, inspect and edit it, then continue.</sub>
 </p>
 
+<p align="center">
+  <a href="plugins/observe/"><img src="docs/observe.png" width="720" alt="The observe mod's Modal tab beside a Claude Code session: one row per running container with its creator, cost and age, plus logs and metrics buttons"></a>
+  <br><sub><a href="plugins/observe/"><code>observe</code></a>: running Modal and Docker containers with live logs and GPU, CPU and RAM meters, plus Render and Vercel deploys.</sub>
+</p>
+
 To update, refresh the marketplace, update the mod, then restart Claude Code:
 
 ```bash
