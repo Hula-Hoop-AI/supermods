@@ -11,6 +11,11 @@ status lines, and add slash commands. Mods need Claude Code v2.1.287 or later.
 
 A mod's name is its slash command: `debugger` adds `/debugger`, `tide` adds `/tide`.
 
+<p align="center">
+  <a href="plugins/debugger/"><img src="docs/debugger.gif" width="360" alt="The debugger mod paused at a Bash tool call: inspecting and editing the command before continuing"></a>
+  <br><sub><a href="plugins/debugger/"><code>debugger</code></a>: pause the agent loop at a tool call, inspect and edit it, then continue.</sub>
+</p>
+
 To update, refresh the marketplace, update the mod, then restart Claude Code:
 
 ```bash
